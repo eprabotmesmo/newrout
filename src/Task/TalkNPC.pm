@@ -144,7 +144,7 @@ sub handle_npc_talk {
 			message TF("%s: Type 'talk text' (Respond to NPC)\n", $self->{target}), "npc";
 			
 		}
-	} elsif ($hook_name eq 'npc_talk' && $self->{start_type} eq 'approach' && $self->{approaching} == 1) {
+	} elsif ($hook_name eq 'npc_talk' && $self->{approaching} == 1 && $talk{nameID} == $self->{target}->{nameID}) {
 		$self->endSubTaskAndResume if ($self->getSubtask);
 		$self->{approaching} = 0;
 		$self->{stage} = TALKING_TO_NPC;
