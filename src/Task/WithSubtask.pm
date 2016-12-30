@@ -112,6 +112,16 @@ sub stop {
 	}
 }
 
+sub endSubTaskAndResume {
+	my ($self) = @_;
+	assert(defined($self->getSubtask())) if DEBUG;
+	my $task = $self->{ST_subtask};
+	_restoreMutexes($self);
+	delete $self->{ST_subtask};
+	$self->subtaskEnded($task);
+	return 1;
+}
+
 ##
 # boolean $Task_WithSubtask->iterate()
 #
@@ -222,6 +232,13 @@ sub subtaskDone {
 #
 # Called when a subtask is stopped by Task::WithSubtask.
 sub subtaskStopped {
+}
+
+##
+# void $Task_WithSubtask->subtaskEnded(Task subtask)
+#
+# Called when a subtask is ended by Task::WithSubtask.
+sub subtaskEnded {
 }
 
 ##

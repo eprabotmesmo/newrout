@@ -41,6 +41,7 @@ use enum qw(
 	STEPS_AFTER_AFTER_NPC_CLOSE
 	STEPS_AFTER_BUY_OR_SELL
 	WRONG_SYNTAX_IN_STEPS
+	NO_TALK_AFTER_APPROACH
 	UNKNOWN_ERROR
 );
 
@@ -95,6 +96,7 @@ sub new {
 	$self->{sequence} = $args{sequence};
 	$self->{sequence} =~ s/^ +| +$//g;
 	$self->{steps} = [];
+	$self->{approaching} = 0;
 	$self->{trying_to_cancel} = 0;
 	$self->{sent_talk_response_cancel} = 0;
 	$self->{error_code} = undef;
@@ -142,13 +144,14 @@ sub handle_npc_talk {
 			message TF("%s: Type 'talk text' (Respond to NPC)\n", $self->{target}), "npc";
 			
 		}
-	} elsif ($hook_name eq 'npc_talk' && $self->{start_type} eq 'approach' && $self->{stage} == NOT_STARTED) {
-		if ($self->getSubtask) {
-			delete $self->{ST_subtask};
-		}
+	} elsif ($hook_name eq 'npc_talk' && $self->{start_type} eq 'approach' && $self->{approaching} == 1) {
+		$self->endSubTaskAndResume if ($self->getSubtask);
+		$self->{approaching} = 0;
 		$self->{stage} = TALKING_TO_NPC;
+		
+		debug "$self->{target}: Approaching npc successfully started conversation\n";
+		
 		$self->{time} = time;
-		warning "[test] ggggg\n";
 	}
 	$self->{time} = time;
 	$self->{sent_talk_response_cancel} = 0;
@@ -219,6 +222,10 @@ sub iterate {
 			# Wait for us to stop moving before talking.
 			return;
 
+		} elsif ($self->{approaching} == 1) {
+				return unless (timeOut($self->{time}, $timeResponse));
+				$self->setError(NO_TALK_AFTER_APPROACH, TF("Approaching npc %s didn't result in a conversation.\n", $self->{target}));
+
 		} elsif (timeOut($self->{time}, $timeResponse)) {
 			if ($self->{nameID}) {
 				$self->setError(NPC_NOT_FOUND, TF("Could not find an NPC with id (%d).",
@@ -231,10 +238,12 @@ sub iterate {
 		} else {
 			my $target = $self->find_and_set_target;
 			
+			
 			if ($target && !%talk && $self->{start_type} eq 'approach') {
-				debug "This NPC requires us to walk to it's side so it can auto start the conversation\n", 'ai_npcTalk';
+				debug "This NPC requires us to approach it so it can auto start the conversation\n", 'ai_npcTalk';
 				return unless $self->addSteps($self->{sequence});
 				
+				$self->{approaching} = 1;
 				$self->setSubtask(Task::Route->new(
 					actor => $char,
 					map => $self->{map},
@@ -766,6 +775,8 @@ sub subtaskDone {
 		} else {
 			$self->setError(UNKNOWN_ERROR, $error->{message});
 		}
+	} elsif ($task->isa('Task::Route') && $self->{approaching} == 1) {
+		warning "$self->{target}: Routing task to approach npc has been completed but no conversation started, kore will wait some time before failing this task\n";
 	}
 }
 
