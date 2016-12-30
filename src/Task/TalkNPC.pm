@@ -142,7 +142,7 @@ sub handle_npc_talk {
 			message TF("%s: Type 'talk text' (Respond to NPC)\n", $self->{target}), "npc";
 			
 		}
-	} elsif ($hook_name eq 'npc_talk' && $self->{start_type} eq 'touch' && $self->{stage} == NOT_STARTED) {
+	} elsif ($hook_name eq 'npc_talk' && $self->{start_type} eq 'approach' && $self->{stage} == NOT_STARTED) {
 		if ($self->getSubtask) {
 			delete $self->{ST_subtask};
 		}
@@ -231,7 +231,7 @@ sub iterate {
 		} else {
 			my $target = $self->find_and_set_target;
 			
-			if ($target && !%talk && $self->{start_type} eq 'touch') {
+			if ($target && !%talk && $self->{start_type} eq 'approach') {
 				debug "This NPC requires us to walk to it's side so it can auto start the conversation\n", 'ai_npcTalk';
 				return unless $self->addSteps($self->{sequence});
 				

@@ -627,7 +627,7 @@ sub cartAdd {
 # x, y: the position of the NPC to talk to.
 # sequence: A string containing the NPC talk sequences.
 # map: the map where NPC resides.
-# start_type: 'talk' or 'touch'.
+# start_type: 'talk' or 'approach'.
 #
 # Talks to an NPC.
 sub ai_talkNPC {

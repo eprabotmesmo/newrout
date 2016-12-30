@@ -5016,14 +5016,14 @@ sub cmdTalk {
 sub cmdTalkNPC {
 	my (undef, $args) = @_;
 
-	my ($map, $starttype, $x, $y, $sequence) = $args =~ /^(?:(\S+) (?:(\w+) )?)?(\d+) (\d+) (.+)$/;
+	my ($map, $starttype, $x, $y, $sequence) = $args =~ /^(?:(\S+) (?:(approach|talk) )?)?(\d+) (\d+) (.+)$/;
 	unless (defined $y) {
 		error T("Syntax Error in function 'talknpc' (Talk to an NPC)\n" .
 			"Usage: talknpc <x> <y> <sequence>\n");
 		return;
 	}
 	
-	if (defined $map && !defined $starttype && $map =~ /(?:touch|talk)/) {
+	if (defined $map && !defined $starttype && $map =~ /(?:approach|talk)/) {
 		$starttype = $map;
 		undef $map;
 	}
