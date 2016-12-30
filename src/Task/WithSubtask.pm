@@ -112,6 +112,11 @@ sub stop {
 	}
 }
 
+##
+# void $Task_WithSubtask->endSubTaskAndResume()
+#
+# This ensures that $Task_WithSubtask has a subtask and early end it.
+# This also restore original mutexes and calls $self->subtaskEnded (subtask).
 sub endSubTaskAndResume {
 	my ($self) = @_;
 	assert(defined($self->getSubtask())) if DEBUG;
@@ -119,7 +124,6 @@ sub endSubTaskAndResume {
 	_restoreMutexes($self);
 	delete $self->{ST_subtask};
 	$self->subtaskEnded($task);
-	return 1;
 }
 
 ##
