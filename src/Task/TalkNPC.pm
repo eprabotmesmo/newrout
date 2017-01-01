@@ -53,6 +53,7 @@ use enum qw(
 	NOT_STARTED
 	ROUTING
 	SENDING_TALK_START
+	TALK_SENT
 	APPROACHING
 	TALKING_TO_NPC
 	AFTER_NPC_CLOSE
@@ -334,17 +335,16 @@ sub iterate {
 		}
 	
 	# This is where things may bug in npcs which have no chat (private healers)
-	} elsif ($self->{stage} == SENDING_TALK_START && timeOut($self->{time}, $timeResponse)) {
+	} elsif ($self->{stage} == TALK_SENT && !$ai_v{'npc_talk'}{'time'} && timeOut($self->{time}, $timeResponse)) {
 		# If NPC does not respond before timing out, then by default, it's
 		# a failure.
 		$messageSender->sendTalkCancel($self->{ID});
 		$self->setError(NPC_NO_RESPONSE, T("The NPC did not respond."));
 		
 	} elsif ($self->{stage} == SENDING_TALK_START) {
-		return if ($ai_v{'npc_talk'}{'time'} || !timeOut($self->{time}, 1.5));
 		debug "$self->{target}: Initiating the talk\n", 'ai_npcTalk';
 		$self->{target}->sendTalk;
-		$ai_v{'npc_talk'}{'time'} = time;
+		$self->{stage} = TALK_SENT;
 		$self->{time} = time;
 
 	} elsif ($self->{stage} == TALKING_TO_NPC && timeOut($ai_v{'npc_talk'}{'time'}, 1.5)) {
