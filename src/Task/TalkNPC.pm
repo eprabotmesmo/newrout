@@ -143,12 +143,8 @@ sub handle_npc_talk {
 sub DESTROY {
 	my ($self) = @_;
 	debug "$self->{target}: Task::TalkNPC::DESTROY was called\n", "ai_npcTalk";
-	if (@{$self->{talkStartHooks}}) {
-		Plugins::delHooks($_) for @{$self->{talkStartHooks}};
-	}
-	if (@{$self->{hookHandles}}) {
-		Plugins::delHooks($_) for @{$self->{hookHandles}};
-	}
+	$self->manage_conversation_start_hook(0) if (@{$self->{talkStartHooks}});
+	$self->manage_talking_hooks(0) if (@{$self->{hookHandles}});
 	$self->SUPER::DESTROY;
 }
 
@@ -166,26 +162,33 @@ sub set_conversation_send {
 	undef $ai_v{'npc_talk'}{'talk'};
 	$self->{time} = time;
 	$self->{stage} = SENDING_TALK_START;
-	$self->add_conversation_start_hook if (!@{$self->{talkStartHooks}});
+	$self->manage_conversation_start_hook(1) if (!@{$self->{talkStartHooks}});
 }
 
-sub add_conversation_start_hook {
-	my ($self) = @_;
-	my @holder = ($self);
-	Scalar::Util::weaken($holder[0]);
-	push @{$self->{talkStartHooks}}, Plugins::addHooks(
-		['npc_talk',                  \&check_conversation_npc, \@holder],
-		['packet/npc_store_begin',    \&check_conversation_npc, \@holder],
-	);
+# 0 - delete
+# 1 - add
+sub manage_conversation_start_hook {
+	my ($self, $mode) = @_;
+	if ($mode) {
+		my @holder = ($self);
+		Scalar::Util::weaken($holder[0]);
+		push @{$self->{talkStartHooks}}, Plugins::addHooks(
+			['npc_talk',                  \&check_conversation_npc, \@holder],
+			['packet/npc_store_begin',    \&check_conversation_npc, \@holder],
+		);
+	} else {
+		Plugins::delHooks($_) for @{$self->{talkStartHooks}};
+		$self->{talkStartHooks} = [];
+	}
 }
 
 sub check_conversation_npc {
-	my ($hook_name, $args, $holder) = @_;
+	my (undef, undef, $holder) = @_;
 	my $self = $holder->[0];
 	if ($self->{stage} == APPROACHING || $self->{stage} == ROUTING) {
 		$self->find_and_set_target;
 	}
-	if ($self->{target}->{ID} == $talk{ID}) {
+	if (exists $self->{target}->{ID} && $self->{target}->{ID} == $talk{ID}) {
 		$self->endSubTaskAndResume if ($self->getSubtask);
 		debug "$self->{target}: Conversation was successfully started\n";
 		$self->set_conversation_started;
@@ -197,12 +200,10 @@ sub check_conversation_npc {
 sub set_conversation_started {
 	my ($self) = @_;
 	use Data::Dumper;
-	if (@{$self->{talkStartHooks}}) {
-		Plugins::delHooks($_) for @{$self->{talkStartHooks}};
-		$self->{talkStartHooks} = [];
-	}
+	$self->manage_conversation_start_hook(0);
 	$self->manage_talking_hooks(1);
 	$self->{stage} = TALKING_TO_NPC;
+	$ai_v{'npc_talk'}{'time'} = time;
 	$self->{time} = time;
 }
 
@@ -306,7 +307,7 @@ sub iterate {
 					debug "No NPC in sight, routing to the specified NPC location\n", 'ai_npcTalk';
 					$self->{stage} = ROUTING;
 				}
-				$self->add_conversation_start_hook;
+				$self->manage_conversation_start_hook(1);
 			}
 			
 			$self->{time} = time;
