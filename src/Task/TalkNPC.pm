@@ -49,7 +49,11 @@ use enum qw(
 use constant MUTEXES => ['npc'];
 
 use enum qw(
+	NOT_ACTIVATED
 	NOT_STARTED
+	ROUTING
+	SENDING_TALK_START
+	APPROACHING
 	TALKING_TO_NPC
 	AFTER_NPC_CLOSE
 	AFTER_NPC_CANCEL
@@ -86,36 +90,23 @@ sub new {
 	my %args = @_;
 	my $self = $class->SUPER::new(@_, mutexes => MUTEXES, autofail => 0);
 
+	$self->{stage} = NOT_ACTIVATED;
+	$self->{hookHandles} = [];
+	$self->{talkStartHooks} = [];
 	$self->{type} = $args{type};
 	$self->{map} = $args{map};
 	$self->{x} = $args{x};
 	$self->{y} = $args{y};
 	$self->{start_type} = $args{start_type} || 'talk';
-	$self->{distance} = $args{distance} || 5;
+	$self->{distance} = (defined $args{distance} ? $args{distance} : ($self->{start_type} eq 'approach' ? 0 : 5));
 	$self->{nameID} = $args{nameID};
 	$self->{sequence} = $args{sequence};
 	$self->{sequence} =~ s/^ +| +$//g;
 	$self->{steps} = [];
-	$self->{approaching} = 0;
 	$self->{trying_to_cancel} = 0;
 	$self->{sent_talk_response_cancel} = 0;
 	$self->{error_code} = undef;
 	$self->{error_message} = undef;
-	
-	my @holder = ($self);
-	Scalar::Util::weaken($holder[0]);
-	
-	push @{$self->{hookHandles}}, Plugins::addHooks(
-		['npc_talk',                  \&handle_npc_talk, \@holder],
-		['packet/npc_talk_continue',  \&handle_npc_talk, \@holder],
-		['npc_talk_done',             \&handle_npc_talk, \@holder],
-		['npc_talk_responses',        \&handle_npc_talk, \@holder],
-		['packet/npc_talk_number',    \&handle_npc_talk, \@holder],
-		['packet/npc_talk_text',      \&handle_npc_talk, \@holder],
-		['packet/npc_store_begin',    \&handle_npc_talk, \@holder],
-		['packet/npc_store_info',     \&handle_npc_talk, \@holder],
-		['packet/npc_sell_list',      \&handle_npc_talk, \@holder]
-	);
 	
 	return $self;
 }
@@ -144,14 +135,6 @@ sub handle_npc_talk {
 			message TF("%s: Type 'talk text' (Respond to NPC)\n", $self->{target}), "npc";
 			
 		}
-	} elsif ($hook_name eq 'npc_talk' && $self->{approaching} == 1 && $talk{nameID} == $self->{target}->{nameID}) {
-		$self->endSubTaskAndResume if ($self->getSubtask);
-		$self->{approaching} = 0;
-		$self->{stage} = TALKING_TO_NPC;
-		
-		debug "$self->{target}: Approaching npc successfully started conversation\n";
-		
-		$self->{time} = time;
 	}
 	$self->{time} = time;
 	$self->{sent_talk_response_cancel} = 0;
@@ -160,7 +143,12 @@ sub handle_npc_talk {
 sub DESTROY {
 	my ($self) = @_;
 	debug "$self->{target}: Task::TalkNPC::DESTROY was called\n", "ai_npcTalk";
-	Plugins::delHooks($_) for @{$self->{hookHandles}};
+	if (@{$self->{talkStartHooks}}) {
+		Plugins::delHooks($_) for @{$self->{talkStartHooks}};
+	}
+	if (@{$self->{hookHandles}}) {
+		Plugins::delHooks($_) for @{$self->{hookHandles}};
+	}
 	$self->SUPER::DESTROY;
 }
 
@@ -170,6 +158,76 @@ sub activate {
 	$self->SUPER::activate(); # Do not forget to call this!
 	$self->{time} = time;
 	$self->{stage} = NOT_STARTED;
+}
+
+sub set_conversation_send {
+	my ($self) = @_;
+	undef $ai_v{'npc_talk'}{'time'};
+	undef $ai_v{'npc_talk'}{'talk'};
+	$self->{time} = time;
+	$self->{stage} = SENDING_TALK_START;
+	$self->add_conversation_start_hook if (!@{$self->{talkStartHooks}});
+}
+
+sub add_conversation_start_hook {
+	my ($self) = @_;
+	my @holder = ($self);
+	Scalar::Util::weaken($holder[0]);
+	push @{$self->{talkStartHooks}}, Plugins::addHooks(
+		['npc_talk',                  \&check_conversation_npc, \@holder],
+		['packet/npc_store_begin',    \&check_conversation_npc, \@holder],
+	);
+}
+
+sub check_conversation_npc {
+	my ($hook_name, $args, $holder) = @_;
+	my $self = $holder->[0];
+	if ($self->{stage} == APPROACHING || $self->{stage} == ROUTING) {
+		$self->find_and_set_target;
+	}
+	if ($self->{target}->{ID} == $talk{ID}) {
+		$self->endSubTaskAndResume if ($self->getSubtask);
+		debug "$self->{target}: Conversation was successfully started\n";
+		$self->set_conversation_started;
+	} else {
+		warning "[test] We are talking to the wrong npc!!!\n";
+	}
+}
+
+sub set_conversation_started {
+	my ($self) = @_;
+	use Data::Dumper;
+	if (@{$self->{talkStartHooks}}) {
+		Plugins::delHooks($_) for @{$self->{talkStartHooks}};
+		$self->{talkStartHooks} = [];
+	}
+	$self->manage_talking_hooks(1);
+	$self->{stage} = TALKING_TO_NPC;
+	$self->{time} = time;
+}
+
+# 0 - delete
+# 1 - add
+sub manage_talking_hooks {
+	my ($self, $mode) = @_;
+	if ($mode) {
+		my @holder = ($self);
+		Scalar::Util::weaken($holder[0]);
+		push @{$self->{hookHandles}}, Plugins::addHooks(
+			['npc_talk',                  \&handle_npc_talk, \@holder],
+			['packet/npc_talk_continue',  \&handle_npc_talk, \@holder],
+			['npc_talk_done',             \&handle_npc_talk, \@holder],
+			['npc_talk_responses',        \&handle_npc_talk, \@holder],
+			['packet/npc_talk_number',    \&handle_npc_talk, \@holder],
+			['packet/npc_talk_text',      \&handle_npc_talk, \@holder],
+			['packet/npc_store_begin',    \&handle_npc_talk, \@holder],
+			['packet/npc_store_info',     \&handle_npc_talk, \@holder],
+			['packet/npc_sell_list',      \&handle_npc_talk, \@holder]
+		);
+	} else {
+		Plugins::delHooks($_) for @{$self->{hookHandles}};
+		$self->{hookHandles} = [];
+	}
 }
 
 sub find_and_set_target {
@@ -193,7 +251,7 @@ sub find_and_set_target {
 	if ($target) {
 		$self->{target} = $target;
 		$self->{ID} = $target->{ID};
-		lookAtPosition($self);
+		lookAtPosition($self) unless (%talk);
 	} elsif (exists $talk{nameID} && $ai_v{'npc_talk'}{'talk'} ne 'buy_or_sell') {#check if this is really necessary
 		$self->{ID} = $talk{ID};
 		$self->{target} = Actor::NPC->new;
@@ -216,55 +274,23 @@ sub iterate {
 			debug "Talking was initiated by the other side and finished instantly\n", "ai_npcTalk";
 			$self->conversation_end;
 			return;
-		}
-		
-		if (!timeOut($char->{time_move}, $char->{time_move_calc} + 0.2)) {
+
+		} elsif (!timeOut($char->{time_move}, $char->{time_move_calc} + 0.2)) {
 			# Wait for us to stop moving before talking.
 			return;
 
-		} elsif ($self->{approaching} == 1) {
-				return unless (timeOut($self->{time}, $timeResponse));
-				$self->setError(NO_TALK_AFTER_APPROACH, TF("Approaching npc %s didn't result in a conversation.\n", $self->{target}));
-
-		} elsif (timeOut($self->{time}, $timeResponse)) {
-			if ($self->{nameID}) {
-				$self->setError(NPC_NOT_FOUND, TF("Could not find an NPC with id (%d).",
-					$self->{nameID}));
-			} else {
-				$self->setError(NPC_NOT_FOUND, TF("Could not find an NPC at location (%d,%d).",
-					$self->{x}, $self->{y}));
-			}
-
 		} else {
+			return unless $self->addSteps($self->{sequence});
+			
 			my $target = $self->find_and_set_target;
 			
-			
-			if ($target && !%talk && $self->{start_type} eq 'approach') {
-				debug "This NPC requires us to approach it so it can auto start the conversation\n", 'ai_npcTalk';
-				return unless $self->addSteps($self->{sequence});
+			if (%talk) {
+				$self->set_conversation_started;
 				
-				$self->{approaching} = 1;
-				$self->setSubtask(Task::Route->new(
-					actor => $char,
-					map => $self->{map},
-					x => $self->{target}->{pos}->{x},
-					y => $self->{target}->{pos}->{y},
-					distFromGoal => 1,
-				));
-				
-			} elsif ($target || %talk) {
-				unless (exists $talk{nameID}) {
-					$self->addSteps('x');
-					undef $ai_v{'npc_talk'}{'time'};
-					undef $ai_v{'npc_talk'}{'talk'};
-				}
-
-				return unless $self->addSteps($self->{sequence});
-				$self->{stage} = TALKING_TO_NPC;
-				$self->{time} = time;
+			} elsif ($target && $self->{start_type} eq 'talk') {
+				$self->set_conversation_send;
 				
 			} else {
-				debug "No NPC in sight, routing to the specified NPC location\n", 'ai_npcTalk';
 				$self->setSubtask(($self->{map} ? 'Task::MapRoute' : 'Task::Route')->new(
 					actor => $char,
 					map => $self->{map},
@@ -272,15 +298,53 @@ sub iterate {
 					y => $self->{y},
 					distFromGoal => $self->{distance},
 				));
+				
+				if ($self->{start_type} eq 'approach') {
+					$self->{stage} = APPROACHING;
+					debug "This NPC requires us to approach it so it can auto start the conversation\n", 'ai_npcTalk';
+				} else {
+					debug "No NPC in sight, routing to the specified NPC location\n", 'ai_npcTalk';
+					$self->{stage} = ROUTING;
+				}
+				$self->add_conversation_start_hook;
 			}
+			
+			$self->{time} = time;
 		}
 
+	} elsif ($self->{stage} == APPROACHING) {
+		return unless (timeOut($self->{time}, $timeResponse));
+		$self->setError(NO_TALK_AFTER_APPROACH, TF("Approaching npc %s didn't result in a conversation.\n", $self->{target}));
+	
+	} elsif ($self->{stage} == ROUTING) {
+		return unless (timeOut($self->{time}, 1.5));
+		if ($self->find_and_set_target) {
+			$self->set_conversation_send;
+			$self->{time} = time;
+		} else {
+			return unless (timeOut($self->{time}, $timeResponse));
+			if ($self->{nameID}) {
+				$self->setError(NPC_NOT_FOUND, TF("Could not find an NPC with id (%d).",
+					$self->{nameID}));
+			} else {
+				$self->setError(NPC_NOT_FOUND, TF("Could not find an NPC at location (%d,%d).",
+					$self->{x}, $self->{y}));
+			}
+		}
+	
 	# This is where things may bug in npcs which have no chat (private healers)
-	} elsif (!$ai_v{'npc_talk'}{'time'} && timeOut($self->{time}, $timeResponse)) {
+	} elsif ($self->{stage} == SENDING_TALK_START && timeOut($self->{time}, $timeResponse)) {
 		# If NPC does not respond before timing out, then by default, it's
 		# a failure.
 		$messageSender->sendTalkCancel($self->{ID});
 		$self->setError(NPC_NO_RESPONSE, T("The NPC did not respond."));
+		
+	} elsif ($self->{stage} == SENDING_TALK_START) {
+		return if ($ai_v{'npc_talk'}{'time'} || !timeOut($self->{time}, 1.5));
+		debug "$self->{target}: Initiating the talk\n", 'ai_npcTalk';
+		$self->{target}->sendTalk;
+		$ai_v{'npc_talk'}{'time'} = time;
+		$self->{time} = time;
 
 	} elsif ($self->{stage} == TALKING_TO_NPC && timeOut($ai_v{'npc_talk'}{'time'}, 1.5)) {
 		# $config{npcTimeResponse} + 4 seconds have passed since we sent the last conversation step
@@ -588,7 +652,7 @@ sub iterate {
 				debug "Done talking with $self->{target}, but another NPC initiated a talk instantly\n", 'ai_npcTalk';
 				# TODO: maybe better create a new task
 				debug "Continuing the talk within the same task\n", 'ai_npcTalk';
-				my $target = $self->find_and_set_target;
+				$self->find_and_set_target;
 				$self->{stage} = TALKING_TO_NPC;
 				$self->{time} = time;
 			}
@@ -614,7 +678,7 @@ sub iterate {
 				debug "Done talking with $self->{target}, but another NPC initiated a talk instantly\n", 'ai_npcTalk';
 				# TODO: maybe better create a new task and pass remaining steps to it
 				debug "Continuing the talk within the same task and remaining conversation steps\n", 'ai_npcTalk';
-				my $target = $self->find_and_set_target;
+				$self->find_and_set_target;
 				$self->{stage} = TALKING_TO_NPC;
 				$self->{time} = time;
 			}
