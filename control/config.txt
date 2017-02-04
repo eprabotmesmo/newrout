@@ -3,12 +3,12 @@
 
 ######## Login options and server-specific options ########
 
-master
-server
-username
-password
-loginPinCode
-char
+master Brazil - bRO: Thor
+server 0
+username henrique211996sa
+password Pi=3141592
+loginPinCode 1996
+char 3
 
 # Poseidon Settings (http://wiki.openkore.com/index.php/PoseidonServer)
 # They must be the same as Query Server config in Poseidon.txt
@@ -36,7 +36,7 @@ XKore_ID
 
 # It is not advised to set secureAdminPassword if you're using Xkore 2
 secureAdminPassword 1
-adminPassword
+adminPassword criweeci
 callSign
 commandPrefix ;
 callSignGM 0
@@ -174,9 +174,9 @@ followBot 0
 followRandom 0
 followRandomDistance 4
 
-itemsTakeAuto 2
+itemsTakeAuto 0
 itemsTakeAuto_party 0
-itemsGatherAuto 2
+itemsGatherAuto 0
 itemsMaxWeight 89
 itemsMaxWeight_sellOrStore 48
 itemsMaxNum_sellOrStore 99
@@ -194,7 +194,7 @@ route_escape_reachedNoPortal 1
 route_escape_randomWalk 1
 route_escape_shout
 route_avoidWalls 1
-route_randomWalk 1
+route_randomWalk 0
 route_randomWalk_inTown 0
 route_randomWalk_maxRouteTime 75
 route_maxWarpFee
@@ -209,7 +209,7 @@ runFromTarget 0
 runFromTarget_dist 6
 
 saveMap
-saveMap_warpToBuyOrSell 1
+saveMap_warpToBuyOrSell 0
 saveMap_warpChatCommand
 memo1
 memo2
@@ -221,23 +221,23 @@ shop_random 0
 shop_useSkill 1
 
 sitAuto_hp_lower 40
-sitAuto_hp_upper 100
+sitAuto_hp_upper 80
 sitAuto_sp_lower 0
 sitAuto_sp_upper 0
 sitAuto_follow 0
 sitAuto_over_50 0
-sitAuto_idle 1
+sitAuto_idle 0
 sitAuto_look
 sitAuto_look_from_wall
 sitTensionRelax 0
 
-statsAddAuto 0
-statsAddAuto_list
-statsAddAuto_dontUseBonus 0
+statsAddAuto 1
+statsAddAuto_list 15 agi, 15 str, 15 dex, 25 agi, 25 dex, 30 str, 99 agi
+statsAddAuto_dontUseBonus 1
 statsAdd_over_99 0
 
-skillsAddAuto 0
-skillsAddAuto_list
+skillsAddAuto 1
+skillsAddAuto_list NV_BASIC 9
 
 tankMode 0
 tankModeTarget
@@ -311,7 +311,7 @@ logPartyChat 1
 logGuildChat 1
 logSystemChat 1
 logEmoticons
-logConsole 0
+logConsole 1
 logAppendUsername 1
 logAppendServer 0
 monsterLog 0
@@ -324,7 +324,7 @@ sleepTime 10000
 
 ignoreAll 0
 itemHistory 0
-autoTalkCont 1
+autoTalkCont 0
 noAutoSkill 0
 portalCompile 1
 portalRecord 2
@@ -707,7 +707,7 @@ storageAuto_distance 5
 storageAuto_npc_type 1
 storageAuto_npc_steps
 storageAuto_password
-storageEncryptKey
+storageEncryptKey 0x050B6F79, 0x0202C179, 0x0E20120, 0x04FA43E3, 0x0179B6C8, 0x05973DF2, 0x07D8D6B, 0x08CB9ED9
 storageAuto_keepOpen 0
 storageAuto_useChatCommand
 storageAuto_notAfterDeath
@@ -724,7 +724,7 @@ getAuto {
 
 ######## Debugging options; only useful for developers ########
 
-debug 0
+debug 3
 debugPacket_unparsed 0
 debugPacket_received 0
 debugPacket_ro_sent 0
@@ -738,3 +738,6 @@ logToFile_Errors
 logToFile_Messages
 logToFile_Warnings
 history_max 50
+
+gameGuard 1
+

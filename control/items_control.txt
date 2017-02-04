@@ -595,3 +595,19 @@ Zenorc's Fang 0 0 1
 "Spearman Scroll 8" 0 0 0
 "Spearman Scroll 9" 0 0 0
 "Spearman Scroll 10" 0 0 0
+Asa de Mosca de Iniciante 0 0 0
+Asa de Borboleta de Iniciante 0 0 0
+Poção de Aprendiz 0 0 0
+Vale-Armazém 50 0 0
+Vale-Teletransporte 50 0 0
+Punhal de Iniciante [3] 0 0 0
+Adaga do Aprendiz 0 0 0
+Vembrassa do Aprendiz 0 0 0
+Chapéu de Ovo do Aprendiz 0 0 0
+Sandálias do Aprendiz 0 0 0
+Capuz do Aprendiz 0 0 0
+Traje do Aprendiz 0 0 0
+Faca [3] 0 0 0
+Main Gauche de Iniciante [3] 0 0 0
+Túnica de Iniciante [1] 0 0 0
+Camisa de Algodão 0 0 0
