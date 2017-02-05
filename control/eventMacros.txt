@@ -541,8 +541,13 @@ automacro talkChoco {
 		do talk cont
 		pause 1
 		do talk cont
-		do conf current_npc kafra
+		add_key('current_npc', 'kafra')
 	}
+}
+
+sub add_key {
+	my ($key, $value) = @_;
+	configModify($key, $value);
 }
 
 automacro moveNextToGuys {
@@ -748,7 +753,40 @@ automacro equipStuffForBradeGrounds {
 	}
 }
 
+automacro LastBradeBug {
+	NpcMsg /Você ainda está fazendo o curso do instrutor Brade/
+	exclusive 1
+	priority 0
+	call {
+		call moveBradeGrounds
+		do talk @npc(/Brade/)
+		pause 0.5
+		do talk cont
+		pause 0.5
+		do talk cont
+		pause 0.5
+		do talk cont
+		pause 0.5
+		do talk cont
+		pause 0.5
+		do talk cont
+		pause 0.5
+		do talk cont
+	}
+}
 
+automacro endleveling {
+	exclusive 1
+	JobLevel 10
+	QuestInactive 7122
+	IsEquippedID rightHand 13040
+	InMap new_1-3, new_2-3, new_3-3, new_4-3, new_5-3
+	priority 1
+	call {
+		log End of leveling here, quitting
+		do quit
+	}
+}
 
 sub GetIndexAndEquipped {
 	my ($type, $id) = @_;
