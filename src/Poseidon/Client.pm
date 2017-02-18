@@ -16,7 +16,7 @@ package Poseidon::Client;
 
 use strict;
 use IO::Socket::INET;
-use Globals qw(%config);
+use Globals qw(%config $char);
 use Log qw(error debug);
 use Bus::MessageParser;
 use Bus::Messages qw(serialize);
@@ -83,6 +83,7 @@ sub query {
 		args => \%args,
 	});
 	$args{packet} = $packet;
+	$args{username} = $char->{name};
 	$data = serialize("Poseidon Query", \%args);
 	$socket->send($data);
 	$socket->flush();

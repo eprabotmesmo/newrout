@@ -62,13 +62,18 @@ sub process {
 	if ($ID ne "Poseidon Query") {
 		$client->close();
 		return;
+	} elsif (!$args->{username}) {
+		print "Username is needed \n";
+		return $args->{auth_failed};
 	}
-	
-	print "[PoseidonServer]-> Received query from bot client " . $client->getIndex() . "\n";
+
+	print "[PoseidonServer]-> Received query from bot client (" . $args->{username} . ")\n";
 
 	my %request = (
 		packet => $args->{packet},
-		client => $client
+		client => $client,
+		username => $args->{username},
+		qstate => 'received'
 	);
 
 	# perform client authentication here
@@ -85,9 +90,7 @@ sub process {
 #	my $packet = substr($ipcArgs->{packet}, 0, 18);
 }
 
-
 ##################################################
-
 
 sub onClientNew {
 	my ($self, $client, $index) = @_;
@@ -100,8 +103,7 @@ sub onClientExit {
 	print "[PoseidonServer]-> Bot Client Disconnected : " . $client->getIndex() . "\n";
 }
 
-sub onClientData
-{
+sub onClientData {
 	my ($self, $client, $msg) = @_;
 	my ($ID, $args);
 
@@ -133,12 +135,12 @@ sub iterate {
 			$data = serialize("Poseidon Reply", \%args);
 			$queue->[0]{client}->send($data);
 			$queue->[0]{client}->close();
-			print "[PoseidonServer]-> Sent result to client : " . $queue->[0]{client}->getIndex() . "\n";
+			print "[PoseidonServer]-> Sent result to client : " . $queue->[0]{username} . "\n";
 		}
 		shift @{$queue};
 
 	} elsif (@{$queue} > 0 && $server->getState() eq 'ready') {
-		print "[PoseidonServer]-> Querying Ragnarok Online client [" . time . "]...\n";
+		print "[PoseidonServer]-> Querying Ragnarok Online client [name: " . $queue->[0]{username} . "] [time: " . time . "]...\n";
 		$server->query($queue->[0]{packet});
 	}
 }
