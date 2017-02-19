@@ -160,6 +160,9 @@ sub getPort {
 # program's main loop.
 sub iterate {
 	my ($self, $timeout) = @_;
+	print "[server: " . $self->{index} . "] " if (exists $self->{index});
+	print "[port: " . $self->getPort . "] [Time: " . time . "]\n";
+	
 	my $serverFD = fileno($self->{BS_server});
 
 	# Generate the bit field for select();

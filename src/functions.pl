@@ -718,6 +718,7 @@ sub initStatVars {
 # MISC. MAIN LOOP FUNCTIONS
 #####################################################
 
+my $poseidon_socket = -1;
 
 # This function is called every time in the main loop, when OpenKore has been
 # fully initialized.
@@ -750,14 +751,43 @@ sub mainLoop_initialized {
 			$outgoingClientMessages, $clientPacketHandler
 		);
 	}
-
+	
 	# GameGuard support
-	if ($config{gameGuard} && ($net->version != 1 || ($net->version == 1 && $config{gameGuard} eq '2'))) {
-		my $result = Poseidon::Client::getInstance()->getResult();
-		if (defined($result)) {
-			debug "Received Poseidon result.\n", "poseidon";
-			#$messageSender->encryptMessageID(\$result, unpack("v", $result));
-			$messageSender->sendToServer($result);
+	if ($config{gameGuard}) {
+		if ($poseidon_socket == -1) {
+			Log::warning "[test0] Creating socket to ask for a poseidon port on : " . $config{poseidonServer} . ":" . $config{poseidonPort} . "\n";
+			$poseidon_socket = Poseidon::Client::->_new($config{poseidonServer}, $config{poseidonPort});
+			my $socket = $poseidon_socket->_connect;
+			if (!$socket) {
+				error "Use da fucking poseidon.\n";
+				offlineMode();
+				return;
+			}
+			
+			use Bus::Messages qw(serialize);
+			my %args;
+			$args{username} = $config{username};
+			my $request = serialize("Poseidon Connect", \%args);
+			$socket->send($request);
+			$socket->flush;
+			$poseidon_socket->{socket} = $socket;
+			$poseidon_socket->{parser} = new Bus::MessageParser();
+			
+		} elsif (!defined $poseidon_port) {
+			my $result = $poseidon_socket->getResult();
+			if (defined($result)) {
+				debug "Received Poseidon result for connection request, our port shall be $result.\n", "poseidon";
+				$poseidon_port = $result;
+			}
+			
+		} elsif ($net->version != 1 || ($net->version == 1 && $config{gameGuard} eq '2')) {
+			my $result = Poseidon::Client::getInstance()->getResult();
+			if (defined($result)) {
+				debug "Received Poseidon result.\n", "poseidon";
+				Log::warning "[gameguard request] Reveived result from poseidon on port ".$poseidon_port." [ Time: ".time." ]\n";
+				#$messageSender->encryptMessageID(\$result, unpack("v", $result));
+				$messageSender->sendToServer($result);
+			}
 		}
 	}
 

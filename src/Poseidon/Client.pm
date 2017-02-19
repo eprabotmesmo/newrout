@@ -16,7 +16,7 @@ package Poseidon::Client;
 
 use strict;
 use IO::Socket::INET;
-use Globals qw(%config $char);
+use Globals qw(%config $char $poseidon_port);
 use Log qw(error debug);
 use Bus::MessageParser;
 use Bus::Messages qw(serialize);
@@ -83,7 +83,7 @@ sub query {
 		args => \%args,
 	});
 	$args{packet} = $packet;
-	$args{username} = $char->{name};
+	$args{username} = $config{username};
 	$data = serialize("Poseidon Query", \%args);
 	$socket->send($data);
 	$socket->flush();
@@ -141,7 +141,7 @@ sub getInstance {
 	if (!$instance) {
 		$instance = Poseidon::Client->_new(
 			$config{poseidonServer} || 'localhost',
-			$config{poseidonPort} || DEFAULT_POSEIDON_SERVER_PORT);
+			$poseidon_port || DEFAULT_POSEIDON_SERVER_PORT);
 	}
 	return $instance;
 }

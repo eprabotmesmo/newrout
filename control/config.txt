@@ -13,7 +13,7 @@ char 9
 # Poseidon Settings (http://wiki.openkore.com/index.php/PoseidonServer)
 # They must be the same as Query Server config in Poseidon.txt
 poseidonServer 127.0.0.1
-poseidonPort 24390
+poseidonPort 6900
 
 bindIp
 forceMapIP
@@ -35,8 +35,8 @@ XKore_publicIp 127.0.0.1
 XKore_ID
 
 # It is not advised to set secureAdminPassword if you're using Xkore 2
-secureAdminPassword 1
-adminPassword joucotha
+secureAdminPassword 0
+adminPassword brupauza
 callSign
 commandPrefix ;
 callSignGM 0
@@ -59,7 +59,7 @@ alias_heal sp 28
 allowedMaps
 allowedMaps_reaction 1
 
-attackAuto 2
+attackAuto -1
 attackAuto_party 1
 attackAuto_onlyWhenSafe 0
 attackAuto_followTarget 1
@@ -184,7 +184,7 @@ cartMaxWeight 7900
 itemsTakeAuto_new 0
 itemsTakeGreed 0
 
-lockMap new_1-3
+lockMap
 lockMap_x
 lockMap_y
 lockMap_randX
@@ -194,7 +194,7 @@ route_escape_reachedNoPortal 1
 route_escape_randomWalk 1
 route_escape_shout
 route_avoidWalls 1
-route_randomWalk 1
+route_randomWalk 0
 route_randomWalk_inTown 0
 route_randomWalk_maxRouteTime 75
 route_maxWarpFee

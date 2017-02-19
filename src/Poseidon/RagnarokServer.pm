@@ -38,8 +38,10 @@ my $enc_val3 = 0;
 my $state    = 0;
 
 sub new {
-	my ($class, @args) = @_;
-	my $self = $class->SUPER::new(@args);
+	my ($class, $port, $host, $index) = @_;
+	my $self = $class->SUPER::new($port, $host);
+	
+	$self->{"index"} = $index;
 
 	# int challengeNum
 	#
@@ -538,6 +540,7 @@ sub ParsePacket
 		if (uc(unpack("H2", substr($msg, 7, 1))) . uc(unpack("H2", substr($msg, 6, 1))) eq '0228') {
 			# queue the response (thanks abt123)
 			$self->{response} = pack("v", $packet_id) . substr($msg, 8, length($msg)-2);
+			print "[PoseidonServer]-> Received response from Ragnarok Online client [server: " . $self->{index} . "] [port: " . $self->getPort . "] [Time: " . time . "]\n";
 			$self->{state} = 'requested';
 		}
 
@@ -565,11 +568,13 @@ sub ParsePacket
 		} else {
 			$self->{response} = pack("v", $packet_id);
 		};
+		print "[PoseidonServer]-> Received response from Ragnarok Online client [server: " . $self->{index} . "] [port: " . $self->getPort . "] [Time: " . time . "]\n";
 		$self->{state} = 'requested';
 	
 	} elsif ($switch eq '02A7') { # client sends hShield response
 		# Queue the response
 		$self->{response} = $msg;
+		print "[PoseidonServer]-> Received response from Ragnarok Online client [server: " . $self->{index} . "] [port: " . $self->getPort . "] [Time: " . time . "]\n";
 		$self->{state} = 'requested';
 
 	} elsif ($switch eq '0258') { # client sent gameguard's challenge request

@@ -36,8 +36,10 @@ my $CLASS = "Poseidon::QueryServer";
 #
 # Create a new Poseidon::QueryServer object.
 sub new {
-	my ($class, $port, $host, $roServer) = @_;
+	my ($class, $port, $host, $roServer, $index) = @_;
 	my $self = $class->SUPER::new($port, $host);
+	
+	$self->{"index"} = $index;
 
 	# Invariant: server isa 'Poseidon::RagnarokServer'
 	$self->{"$CLASS server"} = $roServer;
@@ -67,7 +69,7 @@ sub process {
 		return $args->{auth_failed};
 	}
 
-	print "[PoseidonServer]-> Received query from bot client (" . $args->{username} . ")\n";
+	print "[PoseidonServer]-> Received query from bot client [Name: " . $args->{username} . "] [server: " . $self->{index} . "] [port: " . $self->getPort . "] [Time: " . time . "]\n";
 
 	my %request = (
 		packet => $args->{packet},
@@ -125,8 +127,7 @@ sub iterate {
 	$server = $self->{"$CLASS server"};
 	$queue = $self->{"$CLASS queue"};
 
-	if ($server->getState() eq 'requested') 
-	{
+	if ($server->getState() eq 'requested') {
 		# Send the response to the client.
 		if (@{$queue} > 0 && $queue->[0]{client}) {
 			my ($data, %args);
@@ -135,12 +136,12 @@ sub iterate {
 			$data = serialize("Poseidon Reply", \%args);
 			$queue->[0]{client}->send($data);
 			$queue->[0]{client}->close();
-			print "[PoseidonServer]-> Sent result to client : " . $queue->[0]{username} . "\n";
+			print "[PoseidonServer]-> Sent result to client [Name: " . $queue->[0]{username} . "] [Time: " . time . "]\n";
 		}
 		shift @{$queue};
 
 	} elsif (@{$queue} > 0 && $server->getState() eq 'ready') {
-		print "[PoseidonServer]-> Querying Ragnarok Online client [name: " . $queue->[0]{username} . "] [time: " . time . "]...\n";
+		print "[PoseidonServer]-> Querying Ragnarok Online client [Name: " . $queue->[0]{username} . "] [Time: " . time . "]...\n";
 		$server->query($queue->[0]{packet});
 	}
 }
