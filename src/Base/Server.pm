@@ -160,8 +160,6 @@ sub getPort {
 # program's main loop.
 sub iterate {
 	my ($self, $timeout) = @_;
-	print "[server: " . $self->{index} . "] " if (exists $self->{index});
-	print "[port: " . $self->getPort . "] [Time: " . time . "]\n";
 	
 	my $serverFD = fileno($self->{BS_server});
 
@@ -271,7 +269,8 @@ sub _newClient {
 	my $host = $sock->peerhost if ($sock->can('peerhost'));
 	my $client = new Base::Server::Client($sock, $host, $fd);
 	# The result of Add Function always Gives 0 Index ? So using $FD as Index for Now...
-	$self->{BS_clients}->add($client);
+	my $list_index = $self->{BS_clients}->add($client);
+	$client->{index} = $list_index;
 	my $index = $fd;
 	#print(sprintf("New Index : %d\n",$index));
 	$client->setIndex($index);

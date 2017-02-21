@@ -5,7 +5,7 @@
 
 master Brazil - bRO: Thor
 server 0
-username henrique211996sa
+username henrique211996
 password Pi=3141592
 loginPinCode 1996
 char 9
@@ -13,7 +13,7 @@ char 9
 # Poseidon Settings (http://wiki.openkore.com/index.php/PoseidonServer)
 # They must be the same as Query Server config in Poseidon.txt
 poseidonServer 127.0.0.1
-poseidonPort 6900
+poseidonPort 24391
 
 bindIp
 forceMapIP

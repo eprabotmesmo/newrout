@@ -16,7 +16,7 @@ package Poseidon::Client;
 
 use strict;
 use IO::Socket::INET;
-use Globals qw(%config $char $poseidon_port);
+use Globals qw(%config $char);
 use Log qw(error debug);
 use Bus::MessageParser;
 use Bus::Messages qw(serialize);
@@ -141,7 +141,7 @@ sub getInstance {
 	if (!$instance) {
 		$instance = Poseidon::Client->_new(
 			$config{poseidonServer} || 'localhost',
-			$poseidon_port || DEFAULT_POSEIDON_SERVER_PORT);
+			$config{poseidonPort} || DEFAULT_POSEIDON_SERVER_PORT);
 	}
 	return $instance;
 }

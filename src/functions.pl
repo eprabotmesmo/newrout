@@ -719,6 +719,7 @@ sub initStatVars {
 #####################################################
 
 my $poseidon_socket = -1;
+my $poseidon_result = -1;
 
 # This function is called every time in the main loop, when OpenKore has been
 # fully initialized.
@@ -755,11 +756,11 @@ sub mainLoop_initialized {
 	# GameGuard support
 	if ($config{gameGuard}) {
 		if ($poseidon_socket == -1) {
-			Log::warning "[test0] Creating socket to ask for a poseidon port on : " . $config{poseidonServer} . ":" . $config{poseidonPort} . "\n";
-			$poseidon_socket = Poseidon::Client::->_new($config{poseidonServer}, $config{poseidonPort});
+			Log::warning "[test0] Creating socket to ask for a poseidon port on : " . $config{poseidonServer} . ":" . 24390 . "\n";
+			$poseidon_socket = Poseidon::Client::->_new($config{poseidonServer}, 24390);
 			my $socket = $poseidon_socket->_connect;
 			if (!$socket) {
-				error "Use da fucking poseidon.\n";
+				Log::warning "Use da fucking poseidon.\n";
 				offlineMode();
 				return;
 			}
@@ -772,19 +773,31 @@ sub mainLoop_initialized {
 			$socket->flush;
 			$poseidon_socket->{socket} = $socket;
 			$poseidon_socket->{parser} = new Bus::MessageParser();
+			return;
 			
-		} elsif (!defined $poseidon_port) {
+		} elsif ($poseidon_result == -1) {
 			my $result = $poseidon_socket->getResult();
 			if (defined($result)) {
-				debug "Received Poseidon result for connection request, our port shall be $result.\n", "poseidon";
-				$poseidon_port = $result;
+				Log::warning "Received Poseidon Response.\n";
+				$poseidon_result = 1;
+				if ($result == -1) {
+					Log::warning "Received Denied Poseidon result for connection request.\n";
+					# unsafe to continue, disconnect
+					offlineMode();
+					return;
+				} else {
+					Log::warning "Received Sucessful Poseidon result for connection request, using ragnarok online client ".$result.".\n";
+				}
+			} else {
+				Log::warning "Waiting for response from poseidon.\n";
+				return;
 			}
 			
 		} elsif ($net->version != 1 || ($net->version == 1 && $config{gameGuard} eq '2')) {
 			my $result = Poseidon::Client::getInstance()->getResult();
 			if (defined($result)) {
 				debug "Received Poseidon result.\n", "poseidon";
-				Log::warning "[gameguard request] Reveived result from poseidon on port ".$poseidon_port." [ Time: ".time." ]\n";
+				Log::warning "[gameguard request] Reveived result from poseidon [ Time: ".time." ]\n";
 				#$messageSender->encryptMessageID(\$result, unpack("v", $result));
 				$messageSender->sendToServer($result);
 			}

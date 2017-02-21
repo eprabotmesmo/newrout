@@ -36,10 +36,8 @@ my $CLASS = "Poseidon::QueryServer";
 #
 # Create a new Poseidon::QueryServer object.
 sub new {
-	my ($class, $port, $host, $roServer, $index) = @_;
+	my ($class, $port, $host, $roServer) = @_;
 	my $self = $class->SUPER::new($port, $host);
-	
-	$self->{"index"} = $index;
 
 	# Invariant: server isa 'Poseidon::RagnarokServer'
 	$self->{"$CLASS server"} = $roServer;
@@ -69,27 +67,44 @@ sub process {
 		return $args->{auth_failed};
 	}
 
-	print "[PoseidonServer]-> Received query from bot client [Name: " . $args->{username} . "] [server: " . $self->{index} . "] [port: " . $self->getPort . "] [Time: " . time . "]\n";
+	print "[PoseidonServer]-> Received query from bot client [Name: " . $args->{username} . "] [port4: " . $self->getPort . "] [Time: " . time . "]\n";
+	
+	my $rag_client_index = $self->{"$CLASS server"}->find_bounded_client($args->{username});
+	use Data::Dumper;
+	print "rag_client_index ".Dumper($rag_client_index)."\n";
+	print "self->{CLASS server} ".Dumper($self->{"$CLASS server"})."\n";
+	print "self->{CLASS server}->{clients_servers}[rag_client_index] ".Dumper($self->{"$CLASS server"}->{clients_servers}[$rag_client_index])."\n";
+	if ($rag_client_index == -1) {
+		print "[PoseidonServer]-> This username doesn`t have a ragnarok client bounded to it \n";
+	} else {
+		my $rag_client = $self->{"$CLASS server"}->{clients_servers}[$rag_client_index];
+		if (!$rag_client) {
+			print "[PoseidonServer]-> Ragnarok client of this username has disconnected \n";
+		} elsif (!$rag_client->{client}->{connectedToMap}) {
+			print "[PoseidonServer]-> Ragnarok client of this username is not connected to the map server \n";
+		} else {
+			print "[PoseidonServer]-> This username uses the ragnrok client of index ".$rag_client_index." with port ".$rag_client->getPort()."\n";
+			my %request = (
+				packet => $args->{packet},
+				client => $client,
+				rag_client => $rag_client,
+				username => $args->{username},
+				qstate => 'received'
+			);
 
-	my %request = (
-		packet => $args->{packet},
-		client => $client,
-		username => $args->{username},
-		qstate => 'received'
-	);
+			# perform client authentication here
+			Plugins::callHook('Poseidon/server_authenticate', {
+				args_hash => $args,
+			});
 
-	# perform client authentication here
-	Plugins::callHook('Poseidon/server_authenticate', {
-		args_hash => $args,
-	});
+			# note: the authentication plugin must set auth_failed to true if it doesn't
+			# want the Poseidon server to respond to the query
+			return if ($args->{auth_failed});
 
-	# note: the authentication plugin must set auth_failed to true if it doesn't
-	# want the Poseidon server to respond to the query
-	return if ($args->{auth_failed});
-
-	Scalar::Util::weaken($request{client});
-	push @{$self->{"$CLASS queue"}}, \%request;
-#	my $packet = substr($ipcArgs->{packet}, 0, 18);
+			Scalar::Util::weaken($request{client});
+			push @{$self->{"$CLASS queue"}}, \%request;
+		}
+	}
 }
 
 ##################################################
@@ -126,23 +141,26 @@ sub iterate {
 	$self->SUPER::iterate();
 	$server = $self->{"$CLASS server"};
 	$queue = $self->{"$CLASS queue"};
+	
+	return unless (@{$queue} > 0);
+	my $request = $queue->[0];
 
-	if ($server->getState() eq 'requested') {
+	if ($request->{rag_client}->getState() eq 'requested') {
 		# Send the response to the client.
-		if (@{$queue} > 0 && $queue->[0]{client}) {
+		if ($request->{client}) {
 			my ($data, %args);
 
-			$args{packet} = $server->readResponse();
+			$args{packet} = $request->{rag_client}->readResponse();
 			$data = serialize("Poseidon Reply", \%args);
-			$queue->[0]{client}->send($data);
-			$queue->[0]{client}->close();
-			print "[PoseidonServer]-> Sent result to client [Name: " . $queue->[0]{username} . "] [Time: " . time . "]\n";
+			$request->{client}->send($data);
+			$request->{client}->close();
+			print "[PoseidonServer]-> Sent result to client [Name: " . $request->{username} . "] [Time: " . time . "]\n";
 		}
 		shift @{$queue};
 
-	} elsif (@{$queue} > 0 && $server->getState() eq 'ready') {
-		print "[PoseidonServer]-> Querying Ragnarok Online client [Name: " . $queue->[0]{username} . "] [Time: " . time . "]...\n";
-		$server->query($queue->[0]{packet});
+	} elsif ($request->{rag_client}->getState() eq 'ready') {
+		print "[PoseidonServer]-> Querying Ragnarok Online client [Name: " . $request->{username} . "] [Time: " . time . "]...\n";
+		$request->{rag_client}->query($request->{packet});
 	}
 }
 

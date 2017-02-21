@@ -22,8 +22,10 @@ use Plugins;
 my $CLASS = "Poseidon::ConnectServer";
 
 sub new {
-	my ($class, $port, $host) = @_;
+	my ($class, $port, $host, $roServer) = @_;
 	my $self = $class->SUPER::new($port, $host);
+	
+	$self->{"server"} = $roServer;
 	
 	$self->{"$CLASS queue"} = [];
 	
@@ -45,12 +47,12 @@ sub process {
 
 	print "[PoseidonServer]-> Received connection request from bot client (" . $args->{username} . ")\n";
 	
-	my $port = $self->getPortForClient($client, $args->{username});
+	my $index = $self->getPortForClient($client, $args->{username});
 	
 	my %request = (
 		client => $client,
 		username => $args->{username},
-		port => $port
+		index => $index
 	);
 
 	Scalar::Util::weaken($request{client});
@@ -59,11 +61,20 @@ sub process {
 
 sub getPortForClient {
 	my ($self, $client, $username) = @_;
-	#foreach my $server (@servers) {
-	#	next unless ($server->{ragnarok_server}->{is connected});
-	#	next if ($server->{ragnarok_server}->{has user});
-	#}
-	return 24391;
+	my $index;
+	
+	$index = $self->{"server"}->find_bounded_client($username);
+	if ($index != -1) {
+		return $index;
+	}
+	
+	$index = $self->{"server"}->find_free_client($username);
+	if ($index != -1) {
+		$self->{"server"}->bound_client($index, $username);
+		return $index;
+	}
+	
+	return -1;
 }
 
 sub onClientNew {
@@ -105,10 +116,14 @@ sub iterate {
 	while (@{$queue} > 0) {
 		my $request = shift(@{$queue});
 		
-		print "[PoseidonServer]-> Allowing connection to character ". $request->{username} . " on query port ". $request->{port} . "\n";
+		if ($request->{index} == -1) {
+			print "[PoseidonServer]-> Denied connection to character ". $request->{username} . " because there was no free client\n";
+		} else {
+			print "[PoseidonServer]-> Allowing connection to character ". $request->{username} . " on client index ". $request->{index} . "\n";
+		}
 		
 		my ($data, %args);
-		$args{packet} = $request->{port};
+		$args{packet} = $request->{index};
 		$data = serialize("Poseidon Reply", \%args);
 		$request->{client}->send($data);
 		$request->{client}->close();
