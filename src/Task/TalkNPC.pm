@@ -90,6 +90,7 @@ sub new {
 	$self->{steps} = [];
 	$self->{trying_to_cancel} = 0;
 	$self->{sent_talk_response_cancel} = 0;
+	$self->{waiting_before_trying_to_cancel} = 0;
 	$self->{wait_for_answer} = 0;
 	$self->{error_code} = undef;
 	$self->{error_message} = undef;
@@ -291,7 +292,13 @@ sub iterate {
 				undef $ai_v{'npc_talk'}{'talk'};
 			}
 			
-			return unless $self->addSteps($self->{sequence});
+			if ($self->{type} eq 'autotalk') {
+				$self->dealWithAutoTalk;
+				
+			} else {
+				return unless $self->addSteps($self->{sequence});
+				
+			}
 
 			if ($target || %talk) {
 				$self->{stage} = TALKING_TO_NPC;
@@ -309,6 +316,20 @@ sub iterate {
 	} elsif ($self->{stage} == TALKING_TO_NPC && timeOut($ai_v{'npc_talk'}{'time'}, $timeout{'ai_npc_talk_wait_to_answer'}{'timeout'})) {
 		# $config{npcTimeResponse} seconds have passed since we sent the last conversation step
 		# or $timeout{'ai_npc_talk_wait_to_answer'}{'timeout'} seconds have passed since the npc answered us.
+		
+		if ($self->{waiting_before_trying_to_cancel}) {
+			if (!$self->noMoreSteps) {
+				$self->{waiting_before_trying_to_cancel} = 0;
+				message "User introduced new conversation steps for this conversation, openkore won't try to auto-end the conversation.\n", 'ai_npcTalk';
+				
+			} elsif (timeOut($ai_v{'npc_talk'}{'time'}, $timeout{'ai_npc_wait_before_deal_with_auto_talk_method'}{'timeout'})) {
+				message "User didn't introduce new conversation steps before the timeout, openkore will try to auto-end the conversation.\n", 'ai_npcTalk';
+				$self->{waiting_before_trying_to_cancel} = 0;
+				$self->{trying_to_cancel} = 1;
+			}
+			return;
+		}
+		
 		
 		#In theory after the talk_response_cancel is sent we shouldn't receive anything, so just wait the timer and assume it's over
 		if ($self->{sent_talk_response_cancel}) {
@@ -655,6 +676,31 @@ sub iterate {
 				$self->{time} = time;
 			}
 		}
+	}
+}
+
+sub dealWithAutoTalk {
+	my ($self) = @_;
+	my $method = (defined $config{'npcDealWithAutoTalkMethod'} ? $config{'npcDealWithAutoTalkMethod'} : 0);
+	warning "Using method '".$method."' defined on config key 'npcDealWithAutoTalkMethod' to deal with the auto talk started by the npc.\n";
+	# Will wait for commands
+	if ($method == 0) {
+		warning "Please input more steps using commands.\n";
+		
+	# Will relog to get out of the npc conversation
+	} elsif ($method == 1) {
+		warning "Now openkore will relog to try to end this conversation.\n";
+		relog();
+	
+	# Will try to end the conversation using a custom logic
+	} elsif ($method == 2) {
+		warning "Now openkore will try to auto-end this npc conversation.\n";
+		$self->{trying_to_cancel} = 1;
+	
+	# Openkore will wait $timeout{'ai_npc_wait_before_deal_with_auto_talk_method'}{'timeout'} for new commands, if no command is added until then it will try to end the conversation using a custom logic
+	} elsif ($method == 3) {
+		warning "Openkore will now wait ".$timeout{'ai_npc_wait_before_deal_with_auto_talk_method'}{'timeout'}." seconds for new commands, if no new command is added then it will try to auto-end this npc conversation.\n";
+		$self->{waiting_before_trying_to_cancel} = 1;
 	}
 }
 

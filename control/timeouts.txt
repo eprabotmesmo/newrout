@@ -117,6 +117,7 @@ ai_route_npcTalk 10
 ai_npc_talk_wait_to_answer 1.5
 ai_npc_talk_wait_after_close_to_cancel 0.5
 ai_npc_talk_wait_after_cancel_to_destroy 0.5
+ai_npc_wait_before_deal_with_auto_talk_method 10
 
 ai_buyAuto 5
 ai_buyAuto_giveup 15

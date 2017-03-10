@@ -716,6 +716,7 @@ minStorageZeny 50
 
 npcTimeResponse
 npcWrongStepsMethod 0
+npcDealWithAutoTalkMethod 0
 
 getAuto {
 	minAmount
