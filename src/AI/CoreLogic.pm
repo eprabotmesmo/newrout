@@ -1864,7 +1864,7 @@ sub processLockMap {
 					} else {
 						message TF("Calculating lockMap route to: %s(%s)\n", $maps_lut{$config{'lockMap'}.'.rsw'}, $config{'lockMap'}), "route";
 					}
-					ai_route($config{'lockMap'}, $lockX, $lockY, attackOnRoute => $attackOnRoute);
+					ai_route($config{'lockMap'}, $lockX, $lockY, attackOnRoute => $attackOnRoute, movingToLock => 1);
 				}
 			}
 		}
