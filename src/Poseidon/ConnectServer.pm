@@ -47,7 +47,7 @@ sub process {
 		return $args->{auth_failed};
 	}
 
-	print "[PoseidonServer]-> Received connection request from bot client (" . $args->{username} . ")\n";
+	print "[PoseidonServer]-> Received connection request from Openkore Client (" . $args->{username} . ")\n";
 	
 	my $index = $self->getPortForClient($client, $args->{username});
 	
@@ -84,12 +84,12 @@ sub getPortForClient {
 sub onClientNew {
 	my ($self, $client, $index) = @_;
 	$client->{"$CLASS parser"} = new Bus::MessageParser();
-	print "[PoseidonServer]-> Bot Client Connected to Connect Server: " . $client->getIndex() . "\n";
+	print "[PoseidonServer]-> Openkore Client Connected to Connect Server: " . $client->getIndex() . "\n";
 }
 
 sub onClientExit {
 	my ($self, $client, $index) = @_;
-	print "[PoseidonServer]-> Bot Client Disconnected from Connect Server: " . $client->getIndex() . "\n";
+	print "[PoseidonServer]-> Openkore Client Disconnected from Connect Server: " . $client->getIndex() . "\n";
 }
 
 sub onClientData {

@@ -69,7 +69,7 @@ sub process {
 		return $args->{auth_failed};
 	}
 
-	print "[PoseidonServer]-> Received query from bot client [Name: " . $args->{username} . "] [port: " . $self->getPort . "] [Time: " . time . "]\n";
+	print "[PoseidonServer]-> Received query from Openkore Client [Name: " . $args->{username} . "] [port: " . $self->getPort . "] [Time: " . localtime . "]\n";
 	
 	my %request = (
 		client => $client,
@@ -120,12 +120,12 @@ sub process {
 sub onClientNew {
 	my ($self, $client, $index) = @_;
 	$client->{"$CLASS parser"} = new Bus::MessageParser();
-	print "[PoseidonServer]-> New Bot Client Connected on Query Server: " . $client->getIndex() . "\n";
+	print "[PoseidonServer]-> New Openkore Client Connected on Query Server: " . $client->getIndex() . "\n";
 }
 
 sub onClientExit {
 	my ($self, $client, $index) = @_;
-	print "[PoseidonServer]-> Bot Client Disconnected from Query Server: " . $client->getIndex() . "\n";
+	print "[PoseidonServer]-> Openkore Client Disconnected from Query Server: " . $client->getIndex() . "\n";
 }
 
 sub onClientData {
@@ -170,15 +170,15 @@ sub iterate {
 			my $query_count = $request->{rag_client}->getQueryCount;
 			my $everage = $request->{rag_client}->getEverageQueryTime;
 			
-			print "[PoseidonServer]-> Sent success result to client [Name: " . $request->{username} . "] [Time: " . time . "]\n";
-			print "[PoseidonServer]-> Reply of number ".$query_count." took ".$elapsed." seconds, everage client reply time is ".$everage." seconds\n";
+			print "[PoseidonServer]-> Sent success result to Openkore Client [Name: " . $request->{username} . "] [Time: " . localtime . "]\n";
+			print "[PoseidonServer]-> Reply of number ".$query_count." took ".$elapsed." seconds, everage client reply time: ".$everage." seconds\n";
 			
 			splice(@{$queue}, $current, 1);
 			$queue_last = $#{$queue};
 
 		# send request to client
 		} elsif ($request->{state} eq 'received_from_server' && $request->{rag_client}->getState() eq 'ready') {
-			print "[PoseidonServer]-> Querying Ragnarok Online client [Name: " . $request->{username} . "] [Time: " . time . "]...\n";
+			print "[PoseidonServer]-> Querying Ragnarok Online client [Name: " . $request->{username} . "] [Time: " . localtime . "]...\n";
 			$request->{rag_client}->query($request->{packet});
 			$request->{state} = 'requested_to_client';
 			$request->{request_time} = time;
@@ -193,7 +193,7 @@ sub iterate {
 			$data = serialize("Poseidon Reply", \%args);
 			$request->{client}->send($data);
 			$request->{client}->close();
-			print "[PoseidonServer]-> Sent failed result to client [Name: " . $request->{username} . "] [Time: " . time . "]\n";
+			print "[PoseidonServer]-> Sent failed result to Openkore Client [Name: " . $request->{username} . "] [Time: " . localtime . "]\n";
 			
 			splice(@{$queue}, $current, 1);
 			$queue_last = $#{$queue};

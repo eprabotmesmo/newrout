@@ -783,7 +783,7 @@ sub mainLoop_initialized {
 			if (defined($result)) {
 				debug "Received Poseidon result.\n", "poseidon";
 				unless (exists $result->{error}) {
-					Log::warning "[gameguard request] Received successful result from poseidon [ Time: ".time." ]\n";
+					Log::warning "[gameguard request] Received successful result from poseidon [ Time: ". localtime ." ]\n";
 					$messageSender->sendToServer($result->{packet});
 				}
 			}

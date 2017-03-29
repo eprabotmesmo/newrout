@@ -29,6 +29,30 @@ sub new {
 	return bless($self, $class);
 }
 
+sub get_number_of_connected_clients {
+	my ($self) = @_;
+	
+	my $count = 0;
+	my $free = 0;
+	my $bound = 0;
+	
+	foreach my $server_index (0..$#{$self->{clients_servers}}) {
+		my $server = $self->{clients_servers}[$server_index];
+		
+		next unless ($server);
+		next unless ($server->{client});
+		next unless ($server->{client}->{connectedToMap});
+		$count++;
+		if (defined $server->{boundUsername}) {
+			$bound++;
+		} else {
+			$free++;
+		}
+	}
+	
+	return [$count, $free, $bound];
+}
+
 sub find_bounded_client {
 	my ($self, $username) = @_;
 	if (exists $self->{username_to_index}{$username}) {

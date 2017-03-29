@@ -1,7 +1,7 @@
 # Number of Clients
 # Here you'll define how many ports will be opened starting with
 # ragnarokserver_first_port for ragnarok online clients to connect.
-number_of_clients=1
+number_of_clients=2
 
 # Connect Server
 # Here you'll define the IP Address and the Port where Poseidon

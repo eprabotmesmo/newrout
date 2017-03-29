@@ -666,7 +666,7 @@ sub ParsePacket {
 		if (uc(unpack("H2", substr($msg, 7, 1))) . uc(unpack("H2", substr($msg, 6, 1))) eq '0228') {
 			# queue the response (thanks abt123)
 			$self->{response} = pack("v", $packet_id) . substr($msg, 8, length($msg)-2);
-			print "[PoseidonServer]-> Received response from Ragnarok Online client [port: " . $self->getPort . "] [Time: " . time . "]\n";
+			print "[PoseidonServer]-> Received response from Ragnarok Online client [port: " . $self->getPort . "] [Time: " . localtime . "]\n";
 			$self->{state} = 'requested';
 		}
 
@@ -694,13 +694,13 @@ sub ParsePacket {
 		} else {
 			$self->{response} = pack("v", $packet_id);
 		};
-		print "[PoseidonServer]-> Received response from Ragnarok Online client [port: " . $self->getPort . "] [Time: " . time . "]\n";
+		print "[PoseidonServer]-> Received response from Ragnarok Online client [port: " . $self->getPort . "] [Time: " . localtime . "]\n";
 		$self->{state} = 'requested';
 	
 	} elsif ($switch eq '02A7') { # client sends hShield response
 		# Queue the response
 		$self->{response} = $msg;
-		print "[PoseidonServer]-> Received response from Ragnarok Online client [port: " . $self->getPort . "] [Time: " . time . "]\n";
+		print "[PoseidonServer]-> Received response from Ragnarok Online client [port: " . $self->getPort . "] [Time: " . localtime . "]\n";
 		$self->{state} = 'requested';
 
 	} elsif ($switch eq '0258') { # client sent gameguard's challenge request

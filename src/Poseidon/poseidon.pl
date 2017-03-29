@@ -37,8 +37,14 @@ use constant SLEEP_TIME => 0.01;
 our ($roServer, $queryServer, $connectServer);
 my $time = 0;
 my $timeout = 1;
+my $interface;
 
 sub initialize {
+
+	use Interface;
+	$interface = Interface->loadInterface('Console');
+	$interface->title('Poseidon');
+
 	# Loading Configuration
 	Poseidon::Config::parse_config_file ("poseidon.txt", \%config);
 	
@@ -64,12 +70,23 @@ sub initialize {
 	print "for further instructions.\n";
 }
 
+sub get_title {
+	my $title = 'Poseidon Client ( ';
+	$title .= "Slots: ".$config{number_of_clients};
+	my @clients = @{$roServer->get_number_of_connected_clients};
+	$title .= " || Connected: ".$clients[0];
+	$title .= " || Free: ".$clients[1];
+	$title .= " || Bound: ".$clients[2];
+	$title .= " )";
+}
+
 sub __start {
 	initialize();
 	while (1) {
 		$connectServer->iterate;
 		$roServer->iterate;
 		$queryServer->iterate;
+		$interface->title(get_title());
 		sleep SLEEP_TIME;
 	}
 }
