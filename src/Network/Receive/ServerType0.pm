@@ -1477,14 +1477,14 @@ sub character_creation_successful {
 		$char->{$_} = $args->{$_} if (exists $args->{$_});
 	}
 	$char->{name} = bytesToString($args->{name});
-	$char->{jobID} = 0;
+	$char->{jobID} = defined $args->{job_id} ? $args->{job_id} : 0;
 	$char->{headgear}{low} = 0;
 	$char->{headgear}{top} = 0;
 	$char->{headgear}{mid} = 0;
 	$char->{nameID} = unpack("V", $accountID);
 	#$char->{lv} = 1;
 	#$char->{lv_job} = 1;
-	$char->{sex} = $accountSex2;
+	$char->{sex} = defined $args->{sex} ? $args->{sex} : $accountSex2;
 	$chars[$char->{slot}] = $char;
 
 
@@ -2098,6 +2098,10 @@ sub map_changed {
 		delete $char->{encoreSkill};
 	}
 	undef %guild;
+	if ( $char->cartActive ) {
+		$char->cart->close;
+		$char->cart->clear;
+	}
 
 	Plugins::callHook('Network::Receive::map_changed', {
 		oldMap => $oldMap,
@@ -5899,6 +5903,7 @@ sub skill_delete {
 	return if !$skill;
 	return if !$char->{skills}->{ $skill->getHandle };
 
+	message TF( "Lost skill: %s\n", $skill->getName ), 'skill';
 	delete $char->{skills}->{ $skill->getHandle };
 	binRemove( \@skillsID, $skill->getHandle );
 }

@@ -619,7 +619,8 @@ sub initMapChangeVars {
 		delete $char->{casting};
 		delete $char->{homunculus}{appear_time} if $char->{homunculus};
 		$char->inventory->onMapChange();
-		$char->cart->onMapChange() if ($char->cartActive());
+		# Clear the cart but do not close it.
+		$char->cart->clear;
 		$char->storage->close() if ($char->storage->isReady());
 	}
 	$timeout{play}{time} = time;
