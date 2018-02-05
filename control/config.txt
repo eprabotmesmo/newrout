@@ -183,6 +183,7 @@ itemsMaxNum_sellOrStore 99
 cartMaxWeight 7900
 itemsTakeAuto_new 0
 itemsTakeGreed 0
+itemsCheckWeight 1
 
 lockMap
 lockMap_x
@@ -729,6 +730,7 @@ getAuto {
 	minAmount
 	maxAmount
 	passive
+	disabled 0
 }
 
 ######## Debugging options; only useful for developers ########

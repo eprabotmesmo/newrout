@@ -11633,21 +11633,5 @@ Description : ^777777 Max Magic item attack rate^000000
 GM_ITEM_MATKMIN#
 Minimize Magic item attack rate
 MAX LV : 1
-Description : ^777777 Minimize Magic item attack rate^000000
-#
-MER_INVINCIBLEOFF2#
-Explosão da Mente
-Nível Máximo : 1
-Alcance: 2 células.
-Duração: 10 segundos.
-Tempo de recarga: 30 segundos.
-Descrição : Desativa o vínculo do Demônio Morroc com o Fanático das Trevas, permitindo atacá-lo com precisão.
-#
-ALL_NIFLHEIM_RECALL#
-Para Nifflheim
-Nível máximo: 1
-Tipo: Ativa
-Conjuração: ^7777773 segundos^000000
-Tempo de recarga: ^7777775 minutos^000000
-Descrição: ^777777Teleporta os vivos para o mundo dos mortos, Nifflheim!^000000"
+Description : ^777777 Minimize Magic item attack rate^000000"
 #
