@@ -16,6 +16,21 @@ package Network::Receive::kRO::RagexeRE_2014_01_15e;
 use strict;
 use base qw(Network::Receive::kRO::RagexeRE_2013_08_07a);
 
+sub new {
+	my ($class) = @_;
+	my $self = $class->SUPER::new(@_);
+		my %packets = (
+		'08C8' => ['actor_action', 'a4 a4 a4 V3 x v C V', [qw(sourceID targetID tick src_speed dst_speed damage div type dual_wield_damage)]],
+		);
+		
+	foreach my $switch (keys %packets) {
+		$self->{packet_list}{$switch} = $packets{$switch};
+	}
+
+	return $self; 
+}	
+
+
 1;
 =pod
 #if PACKETVER == 20140115

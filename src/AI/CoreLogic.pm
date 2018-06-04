@@ -1148,7 +1148,8 @@ sub processAutoStorage {
 		  && $config{storageAuto} && ($config{storageAuto_npc} ne "" || $config{storageAuto_useChatCommand} || $config{storageAuto_useItem})
 		  && !$ai_v{sitAuto_forcedBySitCommand}
 		  && (($config{'itemsMaxWeight_sellOrStore'} && percent_weight($char) >= $config{'itemsMaxWeight_sellOrStore'})
-		      || (!$config{'itemsMaxWeight_sellOrStore'} && percent_weight($char) >= $config{'itemsMaxWeight'}))
+		      || (!$config{'itemsMaxWeight_sellOrStore'} && percent_weight($char) >= $config{'itemsMaxWeight'})
+			  || ($config{itemsMaxNum_sellOrStore} && $char->inventory->size() >= $config{itemsMaxNum_sellOrStore}))
 		  && !AI::inQueue("storageAuto") && $char->inventory->isReady()) {
 
 		# Initiate autostorage when the weight limit has been reached
@@ -2192,6 +2193,7 @@ sub processFollow {
 				$args->{'ID'} = $player->{ID};
 				$args->{'following'} = 1;
 				$args->{'name'} = $player->name;
+				AI::clear(qw/move route/);
  				message TF("Found my master - %s\n", $player->name), "follow";
 				last;
 			}			
@@ -2199,6 +2201,7 @@ sub processFollow {
 	} elsif (!$args->{'following'} && $players{$args->{'ID'}} && %{$players{$args->{'ID'}}} && !${$players{$args->{'ID'}}}{'dead'} && ($players{$args->{'ID'}}->name eq $config{followTarget})) {
 		$args->{'following'} = 1;
 		delete $args->{'ai_follow_lost'};
+		AI::clear(qw/move route/);
  		message TF("Found my master!\n"), "follow"
 	}
 
@@ -2631,7 +2634,8 @@ sub processPartySkillUse {
 					}
 					
 					# if that intended to distinguish between party members and other characters on the same accounts, then it didn't work
-					next if (($char->{party}{users}{$ID} ne $playersList->getByID($ID)) && !$config{"partySkill_$i"."_notPartyOnly"});
+					my $player = $playersList->getByID($ID);
+					next if (($char->{party}{users}{$ID}{name} ne $player->{name}) && !$config{"partySkill_$i"."_notPartyOnly"});
 				}
 				
 				my $player = Actor::get($ID);

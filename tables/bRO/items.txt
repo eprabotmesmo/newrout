@@ -68,7 +68,7 @@
 4448#Carta Cornus#
 4449#Carta Sombra Obscura#
 4450#Carta Banshee Master#
-4451#Carta Ant Buyanne#
+4451#Carta Entweihen Crothen#
 4452#Carta Larva de Centopéia#
 4453#Carta Leão da Montanha#
 12717#Curare#
@@ -315,8 +315,6 @@
 6135#Ticket de Ninfa Perversa#
 6136#Ticket de Medusa#
 10038#Protetor de Chifre#
-6377#Licença_de_Atacado#
-12548#Licença Falsa_Atacado#
 6360#Fragmento Escarlate#
 6361#Fragmento Azul#
 6362#Fragmento Amarelo#
@@ -1994,7 +1992,7 @@
 7547#Bola_de_Futebol#
 7548#Chuteiras#
 7549#Bandeira_Nacional#
-7550#Ticket de Contribuição#
+7550#Ingresso dos Mapas Especiais#
 7551#Ticket de Segunda Profissão#
 7552#Nota_com_Horários_dos_Jogos#
 //event - Roberto Magnus Quiz Show
@@ -2018,7 +2016,7 @@
 4157#Carta Goblin Arqueiro#
 4158#Carta Exterminador Voador#
 4159#Carta Nove Caudas#
-4160#Carta Soldado Atirador#
+4160#Carta Zumbi Atirador#
 4161#Carta Grand Peco#
 4162#Carta Grizzly#
 4163#Carta Grifo#
@@ -2165,7 +2163,7 @@
 4304#Carta Tamruan#
 4305#Carta General Tartaruga#
 4306#Carta Sapo-Cururu#
-4307#Carta Besouro-Rei#
+4307#Carta Encouraçado#
 4308#Carta Trilobita#
 4309#Carta Parasita#
 4310#Carta Panzer Goblin#
@@ -5385,7 +5383,7 @@
 17104#Oridecon_Perfeito [50]#
 17105#Elunium_Perfeito [50]#
 2584#Manto_do_Andarilho#
-12379#Biscoito do Papa#
+12379#Biscoito da Papisa#
 
 //------------2012 February Items------------
 
@@ -6164,7 +6162,7 @@
 19768#Tiara de Sakura#
 19770#Caneca de Chá Oriental#
 19771#Presilha de Borboleta#
-19772#Chapéu de Abelha#
+19772#Touca de Abelha#
 19773#Presilha de Angeling#
 19775#Peruca Maravilinda#
 17305#Ovo Fashion#
@@ -8043,7 +8041,7 @@
 20198#Orelhas Peludinhas#
 20248#Peruca de Saiadim#
 20116#Fones de Sereia#
-19022#Pedra Filosofal#
+19022#Cristal Filosofal#
 19306#Carta de Comodo#
 //*****************************************************
 //------------Clock Tower Nightmare--------------------
@@ -8118,7 +8116,127 @@
 //*****************************************************
 //------------Aplicar em 2018-01-30--------------------
 //*****************************************************
-28564#Lágrima de Valquíria#
-20115#Óculos Intelectuais#
+28564#Lágrima de Valquíria #
+20115#Óculos do Sabe-Tudo#
 31399#Véu da Madrugada#
+//*****************************************************
+//------------Aplicar em 2018-02-06--------------------
+//*****************************************************
+31108#Balão de Fala (Abraços Grátis)#
+31109#Balão de Fala (Recruto para Clã)#
+31110#Balão de Fala (Procuro Grupo)#
+31111#Balão de Fala (Procuro Membros)#
+31112#Balão de Fala (Hue Hue Br)#
+28517#Anel do Rei Abissal#
+//*****************************************************
+//------------Aplicar em 2018-02-20--------------------
+//*****************************************************
+18741#Fogo Esmeralda#
+20395#Chapéu da Bruxa Sombria#
+20145#Visor do Ciborgue#
+19668#Boina Vermelha do Mensageiro#
+//*****************************************************
+//------------Aplicar em 2018-02-27--------------------
+//*****************************************************
+28433#Cristal da Luz Azul#
+18813#Óculos Retrofuturistas#
+20375#Chapéu do Marechal#
+19904#Boina da Caveira#
+//*****************************************************
+//------------Aplicar em 2018-03-06--------------------
+//*****************************************************
+19098#Chapéu Macabro de Cetim#
+28901#Coelho Macabro#
+31193#Chapéu de Ahat#
+20506#Manto Invisível#
+19269#Tiara do Orgulho#
+19097#Gravata Macabra de Cetim#
+19299#Fragmento de Yggdrasil#
+28902#Coelho Macabro#
+//*****************************************************
+//------------Aplicar em 2018-03-06--------------------
+//*****************************************************
+28437#Luvas de Restauração#
+19575#Chapéu de Dragão#
+19104#Asas de Dragão#
+5897#Coroa de Pétalas#
+5898#Tiara de Outono#
+5899#Laço Punk#
+5901#Boina de Vigia#
+5902#Chapéu de Jardinagem#
+5904#Chapéu Luxuoso#
+5906#Chifres Maléficos#
+5907#Chapéu da Almirante#
+18791#Laço Divino#
+18794#Chapéu Gracioso#
+18795#Boné com Asinhas#
+20440#Laço com Guizo#
+20328#Carpa Dourada de Cospobre#
+//*****************************************************
+//------------Aplicar em 2018-03-20--------------------
+//*****************************************************
+20236#Gorro de ArchAngeling#
+31315#Estola Angelical#
+31151#Orelhas Felpudas#
+20372#Chapéu Delicado de Cospobre#
+//*****************************************************
+//------------Aplicar em 2018-04-03--------------------
+//*****************************************************
+28927#Égide da Nobreza#
+13465#Gládio da Nobreza#
+31299#Coelhinho Branco#
+31201#Coroa da Grandeza#
+20299#Torta de Baunilha#
+20765#Asas Imaculadas de Arcanjo#
+24212#Sapatos do Novato#
+24213#Escudo do Novato#
+24214#Sapatos Avançados#
+24215#Escudo Avançado#
+24208#Sapatos do Perito#
+24209#Escudo do Perito#
+28438#Pó de Fada#
+31176#Boina de Ursinho#
+31437#Pequeno Pinguim#
+22172#Botas Aladas#
+2984#Luvas Felpudas#
+//*****************************************************
+//------------Aplicar em 2018-04-03--------------------
+//*****************************************************
+31381#Gola Diabólica#
+31052#Máscara do Alquimista#
+20023#Boina Militar Vermelha#
+12548#Licença Falsa de Loja#
+6377#Licença de Loja de Compras#
+//*****************************************************
+//------------Aplicar em 2018-05-03--------------------
+//*****************************************************
+5967#Galapago Voador#
+19095#Balões da Família Poring#
+31450#Peruca Rosa de Waifu#
+31251#Boca de Gatinho#
+20379#Presilha de Relógio Retrô#
+19163#Boneca da Succubus#
+15371#Roupa de Natal do Antonio#
+5975#Boneca da Jirtas#
+//*****************************************************
+//------------Aplicar em 2018-05-08--------------------
+//*****************************************************
+31177#Chapéu Mãe Natureza#
+31433#Auréola Benevolente#
+//*****************************************************
+//------------Aplicar em 2018-05-15--------------------
+//*****************************************************
+31435#Gorro de Tricô Hipster#
+31332#Elmo Negro da Khalitzburg#
+//*****************************************************
+//------------Aplicar em 2018-05-23--------------------
+//*****************************************************
+31407#Peruca Rosa de Alice#
+31117#Gálea Dourada#
+31260#Rastreador Sofisticado#
+//*****************************************************
+//------------Aplicar em 2018-05-29--------------------
+//*****************************************************
+18959#Chapéu de Dighi-titica#
+19294#Fones de Ouvido Nekobits#
 //file end

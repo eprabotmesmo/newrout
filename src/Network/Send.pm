@@ -31,7 +31,7 @@ use Carp::Assert;
 use Digest::MD5;
 use Math::BigInt;
 
-use Globals qw(%config $encryptVal $bytesSent $conState %packetDescriptions $enc_val1 $enc_val2 $char $masterServer $syncSync $accountID %timeout %talk %masterServers $skillExchangeItem $refineUI);
+use Globals qw(%config $encryptVal $bytesSent $conState %packetDescriptions $enc_val1 $enc_val2 $char $masterServer $syncSync $accountID %timeout %talk %masterServers $skillExchangeItem $refineUI $net $rodexList $rodexWrite);
 use I18N qw(bytesToString stringToBytes);
 use Utils qw(existsInList getHex getTickCount getCoordString makeCoordsDir);
 use Misc;
@@ -1232,6 +1232,321 @@ sub sendRefineUIClose {
 	my $self = shift;
 	$self->sendToServer($self->reconstruct({switch => 'refineui_close'}));
 	debug "Closing RefineUI\n", "sendPacket";
+}
+
+sub sendTokenToServer {
+	my ($self, $username, $password, $master_version, $version, $token, $length, $ott_ip, $ott_port) = @_;
+	my $len =  $length + 92;
+
+	my $password_rijndael = $self->encrypt_password($password);
+	my $ip = '192.168.0.14';
+	my $mac = '20CF3095572A';
+	my $mac_hyphen_separated = join '-', $mac =~ /(..)/g;
+
+	$net->serverConnect($ott_ip, $ott_port);
+
+	my $msg = $self->reconstruct({
+		switch => 'token_login',
+		len => $len, # size of packet
+		version => $version,
+		master_version => $master_version,
+		username => $username,
+		password_rijndael => '',
+		mac => $mac_hyphen_separated,
+		ip => $ip,
+		token => $token,
+	});	
+
+	$self->sendToServer($msg);
+
+	debug "Sent sendTokenLogin\n", "sendPacket", 2;
+}
+
+# encrypt password kRO/cRO version 2017-2018
+sub encrypt_password {
+	my ($self, $password) = @_;
+	my $password_rijndael;
+	if (defined $password) {
+		my $key = pack('C32', (0x06, 0xA9, 0x21, 0x40, 0x36, 0xB8, 0xA1, 0x5B, 0x51, 0x2E, 0x03, 0xD5, 0x34, 0x12, 0x00, 0x06, 0x06, 0xA9, 0x21, 0x40, 0x36, 0xB8, 0xA1, 0x5B, 0x51, 0x2E, 0x03, 0xD5, 0x34, 0x12, 0x00, 0x06));
+		my $chain = pack('C32', (0x3D, 0xAF, 0xBA, 0x42, 0x9D, 0x9E, 0xB4, 0x30, 0xB4, 0x22, 0xDA, 0x80, 0x2C, 0x9F, 0xAC, 0x41, 0x3D, 0xAF, 0xBA, 0x42, 0x9D, 0x9E, 0xB4, 0x30, 0xB4, 0x22, 0xDA, 0x80, 0x2C, 0x9F, 0xAC, 0x41));
+		my $in = pack('a32', $password);
+		my $rijndael = Utils::Rijndael->new;
+		$rijndael->MakeKey($key, $chain, 32, 32);
+		$password_rijndael = unpack("Z32", $rijndael->Encrypt($in, undef, 32, 0));
+		return $password_rijndael;
+	} else {
+		error("Password is not configured");
+	}
+}
+
+sub sendReqRemainTime {
+	my ($self) = @_;
+
+	my $msg = $self->reconstruct({
+		switch => 'request_remain_time',
+	});
+
+	$self->sendToServer($msg);
+}
+
+sub sendBlockingPlayerCancel {
+	my ($self) = @_;
+
+	my $msg = $self->reconstruct({
+		switch => 'blocking_play_cancel',
+	});
+
+	$self->sendToServer($msg);
+}
+
+
+sub rodex_delete_mail {
+	my ($self, $type, $mailID1, $mailID2) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_delete_mail',
+		type => $type,
+		mailID1 => $mailID1,
+		mailID2 => $mailID2,
+	}));
+}
+
+sub rodex_request_zeny {
+	my ($self, $mailID1, $mailID2, $type) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_request_zeny',
+		mailID1 => $mailID1,
+		mailID2 => $mailID2,
+		type => $type,
+	}));
+}
+
+sub rodex_request_items {
+	my ($self, $mailID1, $mailID2, $type) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_request_items',
+		mailID1 => $mailID1,
+		mailID2 => $mailID2,
+		type => $type,
+	}));
+}
+
+sub rodex_cancel_write_mail {
+	my ($self) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_cancel_write_mail',
+	}));
+	undef $rodexWrite;
+}
+
+sub rodex_add_item {
+	my ($self, $ID, $amount) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_add_item',
+		ID => $ID,
+		amount => $amount,
+	}));
+}
+
+sub rodex_remove_item {
+	my ($self, $ID, $amount) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_remove_item',
+		ID => $ID,
+		amount => $amount,
+	}));
+}
+
+sub rodex_open_write_mail {
+	my ($self, $name) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_open_write_mail',
+		name => $name,
+	}));
+}
+
+sub rodex_checkname {
+	my ($self, $name) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_checkname',
+		name => $name,
+	}));
+}
+
+sub rodex_send_mail {
+	my ($self) = @_;
+
+	my $title = stringToBytes($rodexWrite->{title});
+	my $body = stringToBytes($rodexWrite->{body});
+	my $pack = $self->reconstruct({
+		switch => 'rodex_send_mail',
+		receiver => $rodexWrite->{target}{name},
+		sender => $char->{name},
+		zeny1 => $rodexWrite->{zeny},
+		zeny2 => 0,
+		title_len => length $title,
+		body_len => length $body,
+		char_id => $rodexWrite->{target}{char_id},
+		title => $title,
+		body => $body,
+	});
+
+	$self->sendToServer($pack);
+}
+
+sub rodex_refresh_maillist {
+	my ($self, $type, $mailID1, $mailID2) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_refresh_maillist',
+		type => $type,
+		mailID1 => $mailID1,
+		mailID2 => $mailID2,
+	}));
+}
+
+sub rodex_read_mail {
+	my ($self, $type, $mailID1, $mailID2) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_read_mail',
+		type => $type,
+		mailID1 => $mailID1,
+		mailID2 => $mailID2,
+	}));
+}
+
+sub rodex_next_maillist {
+	my ($self, $type, $mailID1, $mailID2) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_next_maillist',
+		type => $type,
+		mailID1 => $mailID1,
+		mailID2 => $mailID2,
+	}));
+}
+
+sub rodex_open_mailbox {
+	my ($self, $type, $mailID1, $mailID2) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_open_mailbox',
+		type => $type,
+		mailID1 => $mailID1,
+		mailID2 => $mailID2,
+	}));
+}
+
+sub rodex_close_mailbox {
+	my ($self) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'rodex_close_mailbox',
+	}));
+	undef $rodexList;
+}
+
+sub sendEnteringVender {
+    my ($self, $accountID) = @_;
+    $self->sendToServer($self->reconstruct({
+        switch => 'send_entering_vending',
+        accountID => $accountID,
+    }));
+}
+
+sub sendUnequip {
+    my ($self, $itemIndex) = @_;
+    $self->sendToServer($self->reconstruct({
+        switch => 'send_unequip_item',
+        Index => $itemIndex,
+    }));
+}
+
+sub sendAddStatusPoint {
+    my ($self, $ID,$Amount) = @_;
+    $self->sendToServer($self->reconstruct({
+        switch => 'send_add_status_point',
+        statusID => $ID,
+        Amount => '1', 
+    }));
+}
+
+sub sendAddSkillPoint {
+    my ($self, $skillID) = @_;
+    $self->sendToServer($self->reconstruct({
+        switch => 'send_add_skill_point',
+        skillID => $skillID, 
+    }));
+}
+
+sub sendHotKeyChange {
+	my ($self, $args) = @_;
+	
+	$self->sendToServer($self->reconstruct({
+		switch => 'hotkey_change',
+		idx => $args->{idx},
+		type => $args->{type},
+		id => $args->{id},
+		lvl => $args->{lvl},
+	}));
+}
+
+sub sendQuestState {
+    my ($self, $questID,$state) = @_;
+    $self->sendToServer($self->reconstruct({
+        switch => 'send_quest_state',
+        questID => $questID,
+        state => $state, #TODO:[active=0x00],[inactive=0x01]
+    }));
+	debug "Sent Quest State.\n", "sendPacket", 2;	
+}
+
+sub sendClanChat {
+    my ($self, $message) = @_;
+	$message = $char->{name}." : ".$message;
+    $self->sendToServer($self->reconstruct({switch => 'clan_chat', len => length($message) + 4,message => $message}));
+}
+
+sub sendchangetitle {
+    my ($self, $title_id) = @_;
+    $self->sendToServer($self->reconstruct({
+        switch => 'send_change_title',
+        ID => $title_id,
+    }));
+	debug "Sent Change Title.\n", "sendPacket", 2;	
+}
+
+sub sendRecallSso {
+	my ($self, $accountID) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'recall_sso',
+		ID => $accountID,
+	}));
+}
+
+sub sendRemoveAidSso {
+	my ($self, $accountID) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'remove_aid_sso',
+		ID => $accountID,
+	}));
+}
+
+sub sendMacroStart {
+	my ($self) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'macro_start',
+	}));
+}
+
+sub sendMacroStop {
+	my ($self) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'macro_stop',
+	}));
+}
+
+sub sendReqCashTabCode {
+	my ($self, $tabID) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'req_cash_tabcode',
+		ID => $tabID,
+	}));
 }
 
 1;

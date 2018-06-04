@@ -1019,7 +1019,7 @@ sub actorAdded {
 	my ($type, $list, $hash) = actorAddedRemovedVars ($actor);
 
 	if (defined $type) {
-		debug TF("actorAdded: %s %s (%s), size %s\n", $type, (unpack 'V', $actor->{ID}), $actor->{binID}, $source->size), 'actorlist', 3;
+		debug TF("Actor added: %s %s (%s), size %s\n", $type, (unpack 'V', $actor->{ID}), $actor->{binID}, $source->size), 'actorlist', 3;
 		
 		if (DEBUG && scalar(keys %{$hash}) + 1 != $source->size()) {
 			use Data::Dumper;
@@ -1058,7 +1058,7 @@ sub actorRemoved {
 	my ($type, $list, $hash) = actorAddedRemovedVars ($actor);
 
 	if (defined $type) {
-		debug TF("actorRemoved: %s %s (%s), size %s\n", $type, (unpack 'V', $actor->{ID}), $actor->{binID}, $source->size), 'actorlist', 3;
+		debug TF("Actor removed: %s %s (%s), size %s\n", $type, (unpack 'V', $actor->{ID}), $actor->{binID}, $source->size), 'actorlist', 3;
 		
 		if (DEBUG && scalar(keys %{$hash}) - 1 != $source->size()) {
 			use Data::Dumper;
@@ -2551,6 +2551,8 @@ sub sendMessage_send {
 		$sender->sendPrivateMsg($user, $msg);
 	} elsif ($type eq "k") {
 		$sender->injectMessage($msg);
+	} elsif ($type eq "cln") {
+		$sender->sendClanChat($msg);
 	}
 }
 

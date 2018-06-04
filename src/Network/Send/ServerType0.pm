@@ -58,20 +58,23 @@ sub new {
 		'00A2' => ['item_drop', 'a2 v', [qw(ID amount)]],
 		'00A7' => ['item_use', 'a2 a4', [qw(ID targetID)]],#8
 		'00A9' => ['send_equip', 'a2 v', [qw(ID type)]],#6
+		'00AB' => ['send_unequip_item', 'v', [qw(Index)]],
 		'00B2' => ['restart', 'C', [qw(type)]],
 		'00B8' => ['npc_talk_response', 'a4 C', [qw(ID response)]],
 		'00B9' => ['npc_talk_continue', 'a4', [qw(ID)]],
-		'00BB' => ['sendAddStatusPoint'],
+		'00BB' => ['send_add_status_point', 'v2', [qw(statusID Amount)]],
 		#'00F3' => ['map_login', '', [qw()]],
 		'00E8' => ['deal_item_add', 'a2 V', [qw(ID amount)]],
 		'00F3' => ['storage_item_add', 'a2 V', [qw(ID amount)]],
 		'00F5' => ['storage_item_remove', 'a2 V', [qw(ID amount)]],
 		'0102' => ['party_setting', 'V', [qw(exp)]],
 		'0108' => ['party_chat', 'x2 Z*', [qw(message)]],
+		'0112' => ['send_add_skill_point', 'v', [qw(skillID)]],
 		'0113' => ['skill_use', 'v2 a4', [qw(lv skillID targetID)]],
 		'0116' => ['skill_use_location', 'v4', [qw(lv skillID x y)]],
 		'0126' => ['cart_add', 'a2 V', [qw(ID amount)]],
 		'0127' => ['cart_get', 'a2 V', [qw(ID amount)]],
+		'0130' => ['send_entering_vending', 'a4', [qw(accountID)]],
 		'0134' => ['buy_bulk_vender', 'x2 a4 a*', [qw(venderID itemInfo)]],
 		'0143' => ['npc_talk_number', 'a4 V', [qw(ID value)]],
 		'0146' => ['npc_talk_cancel', 'a4', [qw(ID)]],
@@ -87,6 +90,7 @@ sub new {
 		'019F' => ['pet_capture', 'a4', [qw(ID)]],
 		'01B2' => ['shop_open'], # TODO
 		'012E' => ['shop_close'], # len 2
+		'01C0' => ['request_remain_time'],
 		'01D5' => ['npc_talk_text', 'v a4 Z*', [qw(len ID text)]],
 		'01DB' => ['secure_login_key_request'], # len 2
 		'01DD' => ['master_login', 'V Z24 a16 C', [qw(version username password_salted_md5 master_version)]],
@@ -102,6 +106,8 @@ sub new {
 		'023B' => ['storage_password'],
 		'0275' => ['game_login', 'a4 a4 a4 v C x16 v', [qw(accountID sessionID sessionID2 userLevel accountSex iAccountSID)]],
 		'02B0' => ['master_login', 'V Z24 a24 C Z16 Z14 C', [qw(version username password_rijndael master_version ip mac isGravityID)]],
+		'02B6' => ['send_quest_state', 'V C', [qw(questID state)]],
+		'02BA' => ['hotkey_change', 'v C V v', [qw(idx type id lvl)]],
 		'02C4' => ['party_join_request_by_name', 'Z24', [qw(partyName)]],
 		'02D6' => ['view_player_equip_request', 'a4', [qw(ID)]],
 		'02D8' => ['equip_window_tick', 'V2', [qw(type value)]],
@@ -118,7 +124,9 @@ sub new {
 		'0369' => ['actor_name_request', 'a4', [qw(ID)]],
 		'0436' => ['map_login', 'a4 a4 a4 V C', [qw(accountID charID sessionID tick sex)]],
 		'0437' => ['character_move','a3', [qw(coords)]],
+		'0439' => ['item_use', 'a2 a4', [qw(ID targetID)]],
 		'0443' => ['skill_select', 'V v', [qw(why skillID)]],
+		'0447' => ['blocking_play_cancel'],
 		'07D7' => ['party_setting', 'V C2', [qw(exp itemPickup itemDivision)]],
 		'07E4' => ['item_list_window_selected', 'v V V a*', [qw(len type act itemInfo)]],
 		'0801' => ['buy_bulk_vender', 'x2 a4 a4 a*', [qw(venderID venderCID itemInfo)]], #Selling store
@@ -130,20 +138,30 @@ sub new {
 		'0815' => ['buy_bulk_closeShop'],
 		'0817' => ['buy_bulk_request', 'a4', [qw(ID)]], #6
 		'0819' => ['buy_bulk_buyer', 'a4 a4 a*', [qw(buyerID buyingStoreID itemInfo)]], #Buying store
+		'0825' => ['token_login', 'v v x v Z24 a27 Z17 Z15 a*', [qw(len version master_version username password_rijndael mac ip token)]], # kRO Zero 2017/2018 login
 		'0827' => ['char_delete2', 'a4', [qw(charID)]], # 6
 		'0829' => ['char_delete2_accept', 'a4 a6', [qw(charID code)]], # 12
 		'082B' => ['char_delete2_cancel', 'a4', [qw(charID)]], # 6
+		'0842' => ['recall_sso', 'V', [qw(ID)]],
+		'0843' => ['remove_aid_sso', 'V', [qw(ID)]],
+		'0846' => ['req_cash_tabcode', 'v', [qw(ID)]],
 		'0844' => ['cash_shop_open'],#2
 		'0848' => ['cash_shop_buy_items', 's s V V s', [qw(len count item_id item_amount tab_code)]], #item_id, item_amount and tab_code could be repeated in order to buy multiple itens at once
 		'084A' => ['cash_shop_close'],#2
 		'08B5' => ['pet_capture', 'a4', [qw(ID)]],
 		'08B8' => ['send_pin_password','a4 Z*', [qw(accountID pin)]],
 		'08BA' => ['new_pin_password','a4 Z*', [qw(accountID pin)]],
+		'08C1' => ['macro_start'],#2
+		'08C2' => ['macro_stop'],#2
 		'08C9' => ['request_cashitems'],#2
+		'0970' => ['char_create', 'a24 C v2', [qw(name slot hair_style hair_color)]],
 		'0987' => ['master_login', 'V Z24 a32 C', [qw(version username password_md5_hex master_version)]],
+		'098D' => ['clan_chat', 'v Z*', [qw(len message)]],
+		'098F' => ['char_delete2_accept', 'v a4 a*', [qw(length charID code)]],
 		'0998' => ['send_equip', 'a2 V', [qw(ID type)]],#8
 		'09A1' => ['sync_received_characters'],
 		'09D0' => ['gameguard_reply'],
+		'09D4' => ['sell_buy_complete'],
 		'0A25' => ['achievement_get_reward', 'V', [qw(ach_id)]],
 		#'08BE' => ['change_pin_password','a*', [qw(accountID oldPin newPin)]], # TODO: PIN change system/command?
 		'09E9' => ['rodex_close_mailbox'],   # 2 -- RodexCloseMailbox
@@ -159,10 +177,14 @@ sub new {
 		'0A06' => ['rodex_remove_item', 'a2 v', [qw(ID amount)]],   # 6 -- RodexRemoveItem
 		'0A08' => ['rodex_open_write_mail', 'Z24', [qw(name)]],   # 26 -- RodexOpenWriteMail
 		'0A13' => ['rodex_checkname', 'Z24', [qw(name)]],   # 26 -- RodexCheckName
+		'0A2E' => ['send_change_title', 'V', [qw(ID)]],
+		'0A39' => ['char_create', 'a24 C v4 C', [qw(name slot hair_color hair_style job_id unknown sex)]],
 		'0A6E' => ['rodex_send_mail', 'v Z24 Z24 V2 v v V a* a*', [qw(len receiver sender zeny1 zeny2 title_len body_len char_id title body)]],   # -1 -- RodexSendMail
 		'0AA1' => ['refineui_select', 'a2' ,[qw(index)]],
 		'0AA3' => ['refineui_refine', 'a2 v C' ,[qw(index catalyst bless)]],
 		'0AA4' => ['refineui_close', '' ,[qw()]],
+		'0AAC' => ['master_login', 'V Z30 a32 C', [qw(version username password_hex master_version)]],
+		'0ACF' => ['master_login', 'a4 Z25 a32 a5', [qw(game_code username password_rijndael flag)]],
 	);
 	$self->{packet_list}{$_} = $packets{$_} for keys %packets;
 	
@@ -203,161 +225,8 @@ sub shuffle {
 	$self->{packet_lut}->{ $new->{$_}->[0] } = $_ foreach keys %$new;
 }
 
-sub rodex_delete_mail {
-	my ($self, $type, $mailID1, $mailID2) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_delete_mail',
-		type => $type,
-		mailID1 => $mailID1,
-		mailID2 => $mailID2,
-	}));
-}
-
-sub rodex_request_zeny {
-	my ($self, $mailID1, $mailID2, $type) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_request_zeny',
-		mailID1 => $mailID1,
-		mailID2 => $mailID2,
-		type => $type,
-	}));
-}
-
-sub rodex_request_items {
-	my ($self, $mailID1, $mailID2, $type) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_request_items',
-		mailID1 => $mailID1,
-		mailID2 => $mailID2,
-		type => $type,
-	}));
-}
-
-sub rodex_cancel_write_mail {
-	my ($self) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_cancel_write_mail',
-	}));
-	undef $rodexWrite;
-}
-
-sub rodex_add_item {
-	my ($self, $ID, $amount) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_add_item',
-		ID => $ID,
-		amount => $amount,
-	}));
-}
-
-sub rodex_remove_item {
-	my ($self, $ID, $amount) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_remove_item',
-		ID => $ID,
-		amount => $amount,
-	}));
-}
-
-sub rodex_open_write_mail {
-	my ($self, $name) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_open_write_mail',
-		name => $name,
-	}));
-}
-
-sub rodex_checkname {
-	my ($self, $name) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_checkname',
-		name => $name,
-	}));
-}
-
-sub rodex_send_mail {
-	my ($self) = @_;
-
-	my $title = stringToBytes($rodexWrite->{title});
-	my $body = stringToBytes($rodexWrite->{body});
-	my $pack = $self->reconstruct({
-		switch => 'rodex_send_mail',
-		receiver => $rodexWrite->{target}{name},
-		sender => $char->{name},
-		zeny1 => $rodexWrite->{zeny},
-		zeny2 => 0,
-		title_len => length $title,
-		body_len => length $body,
-		char_id => $rodexWrite->{target}{char_id},
-		title => $title,
-		body => $body,
-	});
-
-	$self->sendToServer($pack);
-}
-
-sub rodex_refresh_maillist {
-	my ($self, $type, $mailID1, $mailID2) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_refresh_maillist',
-		type => $type,
-		mailID1 => $mailID1,
-		mailID2 => $mailID2,
-	}));
-}
-
-sub rodex_read_mail {
-	my ($self, $type, $mailID1, $mailID2) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_read_mail',
-		type => $type,
-		mailID1 => $mailID1,
-		mailID2 => $mailID2,
-	}));
-}
-
-sub rodex_next_maillist {
-	my ($self, $type, $mailID1, $mailID2) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_next_maillist',
-		type => $type,
-		mailID1 => $mailID1,
-		mailID2 => $mailID2,
-	}));
-}
-
-sub rodex_open_mailbox {
-	my ($self, $type, $mailID1, $mailID2) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_open_mailbox',
-		type => $type,
-		mailID1 => $mailID1,
-		mailID2 => $mailID2,
-	}));
-}
-
-sub rodex_close_mailbox {
-	my ($self) = @_;
-	$self->sendToServer($self->reconstruct({
-		switch => 'rodex_close_mailbox',
-	}));
-	undef $rodexList;
-}
-
 sub version {
 	return $masterServer->{version} || 1;
-}
-
-sub sendAddSkillPoint {
-	my ($self, $skillID) = @_;
-	my $msg = pack("C*", 0x12, 0x01) . pack("v*", $skillID);
-	$self->sendToServer($msg);
-}
-
-sub sendAddStatusPoint {
-	my ($self, $statusID) = @_;
-	my $msg = pack("C*", 0xBB, 0) . pack("v*", $statusID) . pack("C*", 0x01);
-	$self->sendToServer($msg);
 }
 
 sub sendAlignment {
@@ -609,13 +478,6 @@ sub sendEmotion {
 	my $msg = pack("C*", 0xBF, 0x00).pack("C1",$ID);
 	$self->sendToServer($msg);
 	debug "Sent Emotion\n", "sendPacket", 2;
-}
-
-sub sendEnteringVender {
-	my ($self, $ID) = @_;
-	my $msg = pack("C*", 0x30, 0x01) . $ID;
-	$self->sendToServer($msg);
-	debug "Sent Entering Vender: ".getHex($ID)."\n", "sendPacket", 2;
 }
 
 # 0x0208,11,friendslistreply,2:6:10
@@ -1170,14 +1032,6 @@ sub sendTop10Taekwon {
 	debug "Sent Top 10 Taekwon request\n", "sendPacket", 2;
 }
 
-sub sendUnequip {
-	my $self = shift;
-	my $ID = shift;
-	my $msg = pack("v", 0x00AB) . pack("a2", $ID);
-	$self->sendToServer($msg);
-	debug sprintf("Sent Unequip: %s\n", unpack('v', $ID)), "sendPacket", 2;
-}
-
 sub sendWho {
 	my $self = shift;
 	my $msg = pack("v", 0x00C1);
@@ -1355,14 +1209,6 @@ sub sendMessageIDEncryptionInitialized {
 	my $msg = pack("v", 0x02AF);
 	$self->sendToServer($msg);
 	debug "Sent Message ID Encryption Initialized\n", "sendPacket", 2;
-}
-
-# has the same effects as rightclicking in quest window
-sub sendQuestState {
-	my ($self, $questID, $state) = @_;
-	my $msg = pack("v V C", 0x02B6, $questID, $state);
-	$self->sendToServer($msg);
-	debug "Sent Quest State.\n", "sendPacket", 2;
 }
 
 sub sendBattlegroundChat {

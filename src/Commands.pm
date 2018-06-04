@@ -84,6 +84,7 @@ sub initHandlers {
 	chist				=> \&cmdChist,
 	cil					=> \&cmdItemLogClear,
 	cl					=> \&cmdChatRoom,
+	cln					=> \&cmdChat,
 	clearlog			=> \&cmdChatLogClear,
 	closeshop			=> \&cmdCloseShop,
 	closebuyshop		=> \&cmdCloseBuyShop,
@@ -240,6 +241,7 @@ sub initHandlers {
 	southwest			=> \&cmdManualMove,
 	captcha			   => \&cmdAnswerCaptcha,
 	refineui			=> \&cmdRefineUI,
+	clan				=> \&cmdClan,
 
 	# Skill Exchange Item
 	cm					=> \&cmdExchangeItem,
@@ -3891,10 +3893,11 @@ sub cmdPlayerList {
 		my $headTop = headgearName($player->{headgear}{top});
 		my $headMid = headgearName($player->{headgear}{mid});
 		my $headLow = headgearName($player->{headgear}{low});
-
+		
 		$msg = center(T(" Player Info "), 67, '-') ."\n" .
 			$player->name . " (" . $player->{binID} . ")\n" .
 		TF("Account ID: %s (Hex: %s)\n" .
+			"Title ID : %s\n" .
 			"Party: %s\n" .
 			"Guild: %s\n" .
 			"Guild title: %s\n" .
@@ -3907,7 +3910,7 @@ sub cmdPlayerList {
 			"Upper headgear: %-19s Middle headgear: %-19s\n" .
 			"Lower headgear: %-19s Hair color:      %-19s\n" .
 			"Walk speed: %s secs per block\n",
-		$player->{nameID}, $hex,
+		$player->{nameID}, $hex, $player->{title}{ID} ? $player->{title}{ID}: 'N/A',
 		($player->{party} && $player->{party}{name} ne '') ? $player->{party}{name} : '',
 		($player->{guild}) ? $player->{guild}{name} : '',
 		($player->{guild}) ? $player->{guild}{title} : '',
@@ -5295,11 +5298,21 @@ sub cmdUseSkill {
 	my @args = parseArgs($args_string);
 
 	if ($cmd eq 'sl') {
-		my $x = $args[1];
-		my $y = $args[2];
-		if (@args < 3 || @args > 4) {
+		my ($x, $y);
+		
+		if (scalar @args < 3) {
+			$x = $char->position->{x};
+			$y = $char->position->{y};
+			$level = $args[1];
+		} else {
+			$x = $args[1];
+			$y = $args[2];
+			$level = $args[3];
+		}
+		
+		if (@args < 1 || @args > 4) {
 			error T("Syntax error in function 'sl' (Use Skill on Location)\n" .
-				"Usage: sl <skill #> <x> <y> [level]\n");
+				"Usage: sl <skill #> [<x> <y>] [level]\n");
 			return;
 		} elsif ($x !~ /^\d+$/ || $y !~ /^\d+/) {
 			error T("Error in function 'sl' (Use Skill on Location)\n" .
@@ -5307,7 +5320,6 @@ sub cmdUseSkill {
 			return;
 		} else {
 			$target = { x => $x, y => $y };
-			$level = $args[3];
 		}
 		# This was the code for choosing a random location when x and y are not given:
 		# my $pos = calcPosition($char);
@@ -6852,6 +6864,34 @@ sub cmdRefineUI {
 	} else {
 		error T("Invalid usage!\n");
 		return;
+	}
+}
+
+sub cmdClan {
+    my (undef, $args_string) = @_;
+    my (@args) = parseArgs($args_string, 3);
+
+	if (!$net || $net->getState() != Network::IN_GAME) {
+		error TF("You must be logged in the game to use this command '%s'\n", shift);
+		return;
+	} elsif(!$clan{clan_name}) {
+		error TF("You must be in a Real Clan to use command '%s'\n", shift);
+		return;
+	}
+
+	if ($args[0] eq "info" || $args[0] eq "") {
+		my $msg = center(T(" Clan Information "), 40, '-') ."\n" .
+			TF("ClanName : %s\n" .
+				"Clan Master Name : %s\n" .
+				"Number of Members : %s/%s\n".
+				"Castles Owned : %s\n" .
+				"Ally Clan Count : %s\n" .
+				"Ally Clan Names: %s\n" .
+				"Hostile Clan Count: %s\n" .
+				"Hostile Clan Names: %s\n",				
+		$clan{clan_name}, $clan{clan_master}, $clan{onlineuser}, $clan{totalmembers}, $clan{clan_map}, $clan{alliance_count}, $clan{ally_names}, $clan{antagonist_count}, $clan{antagonist_names});
+		$msg .= ('-'x40) . "\n";
+		message $msg, "info";
 	}
 }
 

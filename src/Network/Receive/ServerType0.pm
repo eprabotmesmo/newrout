@@ -139,7 +139,7 @@ sub new {
 		'00D2' => ['ignore_all_result', 'C2', [qw(type error)]],
 		'00D4' => ['whisper_list'],
 		'00D6' => ['chat_created'],
-		'00D7' => ['chat_info', 'x2 a4 a4 v2 C a*', [qw(ownerID ID limit num_users public title)]],
+		'00D7' => ['chat_info', 'v a4 a4 v2 C a*', [qw(len ownerID ID limit num_users public title)]],
 		'00D8' => ['chat_removed', 'a4', [qw(ID)]],
 		'00DA' => ['chat_join_result', 'C', [qw(type)]],
 		'00DB' => ['chat_users'],
@@ -159,16 +159,16 @@ sub new {
 		'00F6' => ['storage_item_removed', 'a2 V', [qw(ID amount)]],
 		'00F8' => ['storage_closed'],
 		'00FA' => ['party_organize_result', 'C', [qw(fail)]],
-		'00FB' => ['party_users_info', 'x2 Z24', [qw(party_name)]],
+		'00FB' => ['party_users_info', 'v Z24 a*', [qw(len party_name playerInfo)]],
 		'00FD' => ['party_invite_result', 'Z24 C', [qw(name type)]],
 		'00FE' => ['party_invite', 'a4 Z24', [qw(ID name)]],
-		'0101' => ['party_exp', 'v x2', [qw(type)]],
+		'0101' => ['party_exp', 'V', [qw(type)]],
 		'0104' => ['party_join', 'a4 V v2 C Z24 Z24 Z16', [qw(ID role x y type name user map)]],
 		'0105' => ['party_leave', 'a4 Z24 C', [qw(ID name result)]],
 		'0106' => ['party_hp_info', 'a4 v2', [qw(ID hp hp_max)]],
 		'0107' => ['party_location', 'a4 v2', [qw(ID x y)]],
 		'0108' => ['item_upgrade', 'v a2 v', [qw(type ID upgrade)]],
-		'0109' => ['party_chat', 'x2 a4 Z*', [qw(ID message)]],
+		'0109' => ['party_chat', 'v a4 Z*', [qw(len ID message)]],
 		'0110' => ['skill_use_failed', 'v3 C2', [qw(skillID btype unknown fail type)]],
 		'010A' => ['mvp_item', 'v', [qw(itemID)]],
 		'010B' => ['mvp_you', 'V', [qw(expAmount)]],
@@ -276,6 +276,7 @@ sub new {
 		'01B5' => ['account_payment_info', 'V2', [qw(D_minute H_minute)]],
 		'01B6' => ['guild_info', 'a4 V9 a4 Z24 Z24 Z20', [qw(ID lv conMember maxMember average exp exp_next tax tendency_left_right tendency_down_up emblemID name master castles_string)]],
 		'01B9' => ['cast_cancelled', 'a4', [qw(ID)]],
+		'01C1' => ['remain_time_info' , 'a4 a4 a4', [qw(result expiration_date remain_time)]],
 		'01C3' => ['local_broadcast', 'v V v4 Z*', [qw(len color font_type font_size font_align font_y message)]],
 		'01C4' => ['storage_item_added', 'a2 V v C4 a8', [qw(ID amount nameID type identified broken upgrade cards)]],
 		'01C5' => ['cart_item_added', 'a2 V v C4 a8', [qw(ID amount nameID type identified broken upgrade cards)]],
@@ -326,6 +327,7 @@ sub new {
 		'0207' => ['friend_request', 'a4 a4 Z24', [qw(accountID charID name)]],
 		'0209' => ['friend_response', 'v a4 a4 Z24', [qw(type accountID charID name)]],
 		'020A' => ['friend_removed', 'a4 a4', [qw(friendAccountID friendCharID)]],
+		'020D' => ['character_ban_list', 'v a*', [qw(len charList)]], # -1 charList[charName size:24]
 		'020E' => ['taekwon_packets', 'Z24 a4 C2', [qw(name ID value flag)]],
 		'020F' => ['pvp_point', 'V2', [qw(AID GID)]], #TODO: PACKET_CZ_REQ_PVPPOINT
 		'0215' => ['gospel_buff_aligned', 'a4', [qw(ID)]],
@@ -412,7 +414,7 @@ sub new {
 		'02B5' => ['quest_update_mission_hunt', 'v2 a*', [qw(len amount mobInfo)]],		# var len
 		'02B7' => ['quest_active', 'V C', [qw(questID active)]],
 		'02B8' => ['party_show_picker', 'a4 v C3 a8 v C', [qw(sourceID nameID identified broken upgrade cards location type)]],
-		'02B9' => ['hotkeys'],
+		'02B9' => ['hotkeys', 'a*', [qw(hotkeys)]],
 		'02C1' => ['npc_chat', 'x2 a4 a4 Z*', [qw(ID color message)]],
 		'02C5' => ['party_invite_result', 'Z24 V', [qw(name type)]],
 		'02C6' => ['party_invite', 'a4 Z24', [qw(ID name)]],
@@ -463,7 +465,7 @@ sub new {
 
 		'0449' => ['hack_shield_alarm'],
 		'07D8' => ['party_exp', 'V C2', [qw(type itemPickup itemDivision)]],
-		'07D9' => ['hotkeys'], # 268 # hotkeys:38
+		'07D9' => ['hotkeys', 'a*', [qw(hotkeys)]], # 268 # hotkeys:38
 		'07DB' => ['stat_info', 'v V', [qw(type val)]], # 8
 		'07E1' => ['skill_update', 'v V v3 C', [qw(skillID type lv sp range up)]],
 		'07E2' => ['msg_string', 'v V', [qw(index para1)]],
@@ -544,6 +546,11 @@ sub new {
 		'097E' => ['rank_points', 'vV2', [qw(type points total)]],
 		'0983' => ['actor_status_active', 'v a4 C V5', [qw(type ID flag total tick unknown1 unknown2 unknown3)]],
 		'0984' => ['actor_status_active', 'a4 v V5', [qw(ID type total tick unknown1 unknown2 unknown3)]],
+		'0985' => ['skill_post_delaylist2', 'v a*', [qw(packet_len msg)]],
+		'0988' => ['clan_user', 'v2' ,[qw(onlineuser totalmembers)]],
+		'098A' => ['clan_info', 'v a4 Z24 Z24 Z16 C2 a*', [qw(len clan_ID clan_name clan_master clan_map alliance_count antagonist_count ally_antagonist_names)]],
+		'098D' => ['clan_leave'],
+		'098E' => ['clan_chat', 'v Z24 Z*', [qw(len charname message)]],
 		'0990' => ['inventory_item_added', 'a2 v2 C3 a8 V C2 a4 v', [qw(ID amount nameID identified broken upgrade cards type_equip type fail expire unknown)]],
 		'0991' => ['inventory_items_stackable', 'v a*', [qw(len itemInfo)]],
 		'0992' => ['inventory_items_nonstackable', 'v a*', [qw(len itemInfo)]],
@@ -568,9 +575,23 @@ sub new {
 		'09DE' => ['private_message', 'v V Z25 Z*', [qw(len charID privMsgUser privMsg)]],
 		'09DF' => ['private_message_sent', 'C V', [qw(type charID)]],
 		'09E5' => ['shop_sold_long', 'v2 a4 V2', [qw(number amount charID time zeny)]],
+		'09E7' => ['unread_rodex', 'C', [qw(show)]],   # 3
+		'09EB' => ['rodex_read_mail', 'v C V2 v V2 C', [qw(len type mailID1 mailID2 text_len zeny1 zeny2 itemCount)]],   # -1
+		'09ED' => ['rodex_write_result', 'C', [qw(fail)]],   # 3		
+		'09F0' => ['rodex_mail_list', 'v C3', [qw(len type amount isEnd)]],   # -1
+		'09F2' => ['rodex_get_zeny', 'V2 C2', [qw(mailID1 mailID2 type fail)]],   # 12
+		'09F4' => ['rodex_get_item', 'V2 C2', [qw(mailID1 mailID2 type fail)]],   # 12
+		'09F6' => ['rodex_delete', 'C V2', [qw(type mailID1 mailID2)]],   # 11
+		'09F7' => ['homunculus_property', 'Z24 C v12 V2 v2 V2 v2', [qw(name state level hunger intimacy accessory atk matk hit critical def mdef flee aspd hp hp_max sp sp_max exp exp_max points_skill attack_range)]],
 		'09F8' => ['quest_all_list3', 'v3 a*', [qw(len count unknown message)]],
 		'09F9' => ['quest_add', 'V C V2 v', [qw(questID active time_start time amount)]],
 		'09FA' => ['quest_update_mission_hunt', 'v2 a*', [qw(len amount mobInfo)]],
+		'09FD' => ['actor_moved', 'v C a4 a4 v3 V v5 a4 v6 a4 a2 v V C2 a6 C2 v2 a9 Z*', [qw(len object_type ID charID walk_speed opt1 opt2 option type hair_style weapon shield lowhead tick tophead midhead hair_color clothes_color head_dir costume guildID emblemID manner opt3 stance sex coords xSize ySize lv font opt4 name)]],
+		'09FE' => ['actor_connected', 'v C a4 a4 v3 V v11 a4 a2 v V C2 a3 C2 v2 a9 Z*', [qw(len object_type ID charID walk_speed opt1 opt2 option type hair_style weapon shield lowhead tophead midhead hair_color clothes_color head_dir costume guildID emblemID manner opt3 stance sex coords xSize ySize lv font opt4 name)]],
+		'09FF' => ['actor_exists', 'v C a4 a4 v3 V v11 a4 a2 v V C2 a3 C3 v2 a9 Z*', [qw(len object_type ID charID walk_speed opt1 opt2 option type hair_style weapon shield lowhead tophead midhead hair_color clothes_color head_dir costume guildID emblemID manner opt3 stance sex coords xSize ySize act lv font opt4 name)]],
+		'0A00' => ['hotkeys', 'C a*', [qw(rotate hotkeys)]], # 269 # hotkeys:38
+		'0A05' => ['rodex_add_item', 'C a2 v2 C4 a8 a25 v a5', [qw(fail ID amount nameID type identified broken upgrade cards options weight unknow)]],   # 53
+		'0A07' => ['rodex_remove_item', 'C a2 v2', [qw(result ID amount weight)]],   # 9
 		'0A09' => ['deal_add_other', 'v C V C3 a8 a25', [qw(nameID type amount identified broken upgrade cards options)]],
 		'0A0A' => ['storage_item_added', 'a2 V v C4 a8 a25', [qw(ID amount nameID type identified broken upgrade cards options)]],
 		'0A0B' => ['cart_item_added', 'a2 V v C4 a8 a25', [qw(ID amount nameID type identified broken upgrade cards options)]],
@@ -578,30 +599,41 @@ sub new {
 		'0A0D' => ['inventory_items_nonstackable', 'v a*', [qw(len itemInfo)]],
 		'0A0F' => ['cart_items_nonstackable', 'v a*', [qw(len itemInfo)]],
 		'0A10' => ['storage_items_nonstackable', 'v Z24 a*', [qw(len title itemInfo)]],
+		'0A12' => ['rodex_open_write', 'Z24 C', [qw(name result)]],   # 27
 		'0A23' => ['achievement_list', 'v V V v V V', [qw(len ach_count total_points rank current_rank_points next_rank_points)]], # -1
 		'0A24' => ['achievement_update', 'V v VVV C V10 V C', [qw(total_points rank current_rank_points next_rank_points ach_id completed objective1 objective2 objective3 objective4 objective5 objective6 objective7 objective8 objective9 objective10 completed_at reward)]], # 66
 		'0A26' => ['achievement_reward_ack', 'C V', [qw(received ach_id)]], # 7
+		'0A27' => ['hp_sp_changed', 'v V', [qw(type amount)]],
 		'0A2D' => ['show_eq', 'v Z24 v7 v C a*', [qw(len name jobID hair_style tophead midhead lowhead robe hair_color clothes_color sex equips_info)]],
-		'0A27' => ['hp_sp_changed', 'vV', [qw(type amount)]],
-		'0A30' => ['actor_info', 'a4 Z24 Z24 Z24 Z24 x4', [qw(ID name partyName guildName guildTitle)]],
+		'0A2F' => ['change_title', 'C V', [qw(result title_id)]],
+		'0A30' => ['actor_info', 'a4 Z24 Z24 Z24 Z24 V', [qw(ID name partyName guildName guildTitle titleID)]],
 		'0A34' => ['senbei_amount', 'V', [qw(amount)]], #new senbei system (new cash currency)
 		'0A36' => ['monster_hp_info_tiny', 'a4 C', [qw(ID hp)]],
+		'0A37' => ['inventory_item_added', 'a2 v2 C3 a8 V C2 a4 v a25', [qw(ID amount nameID identified broken upgrade cards type_equip type fail expire unknown options)]],
 		'0A3B' => ['hat_effect', 'v a4 C a*', [qw(len ID flag effect)]], # -1
-		'C350' => ['senbei_vender_items_list'], #new senbei vender, need research
-		'09F0' => ['rodex_mail_list', 'v C3', [qw(len type amount isEnd)]],   # -1
-		'09F6' => ['rodex_delete', 'C V2', [qw(type mailID1 mailID2)]],   # 11
-		'09ED' => ['rodex_write_result', 'C', [qw(fail)]],   # 3
-		'09EB' => ['rodex_read_mail', 'v C V2 v V2 C', [qw(len type mailID1 mailID2 text_len zeny1 zeny2 itemCount)]],   # -1
-		'09F2' => ['rodex_get_zeny', 'V2 C2', [qw(mailID1 mailID2 type fail)]],   # 12
-		'09F4' => ['rodex_get_item', 'V2 C2', [qw(mailID1 mailID2 type fail)]],   # 12
-		'0A12' => ['rodex_open_write', 'Z24 C', [qw(name result)]],   # 27
-		'0A07' => ['rodex_remove_item', 'C a2 v2', [qw(result ID amount weight)]],   # 9
+		'0A43' => ['party_join', 'a4 V v4 C Z24 Z24 Z16 C2', [qw(ID role jobID lv x y type name user map item_pickup item_share)]],
+		'0A44' => ['party_users_info', 'v Z24 a*', [qw(len party_name playerInfo)]],
 		'0A51' => ['rodex_check_player', 'V v2 Z24', [qw(char_id class base_level name)]],   # 34
-		'09E7' => ['unread_rodex', 'C', [qw(show)]],   # 3
-		'0A05' => ['rodex_add_item', 'C a2 v2 C4 a8 a25 v a5', [qw(fail ID amount nameID type identified broken upgrade cards options weight unknow)]],   # 53
 		'0A7D' => ['rodex_mail_list', 'v C3', [qw(len type amount isEnd)]],   # -1
+		'0A89' => ['clone_vender_found', 'a4 v4 C v9 Z24', [qw(ID jobID unknown coord_x coord_y sex head_dir weapon shield lowhead tophead midhead hair_color clothes_color robe title)]],
+		'0A8A' => ['clone_vender_lost', 'v a4', [qw(len ID)]],		
 		'0AA0' => ['refineui_opened', '' ,[qw()]],
 		'0AA2' => ['refineui_info', 'v v C a*' ,[qw(len index bless materials)]],
+		'0AC4' => ['account_server_info', 'x2 a4 a4 a4 a4 a26 C x17 a*', [qw(sessionID accountID sessionID2 lastLoginIP lastLoginTime accountSex serverInfo)]],
+		'0AC5' => ['received_character_ID_and_Map', 'a4 Z16 a4 v a128', [qw(charID mapName mapIP mapPort unknown)]],
+		'0AC7' => ['map_changed', 'Z16 v2 a4 v a128', [qw(map x y IP port unknown)]], # 156
+		'0AC9' => ['account_server_info', 'v a4 a4 a4 a4 a26 C a6 a*', [qw(len sessionID accountID sessionID2 lastLoginIP lastLoginTime accountSex unknown serverInfo)]],
+		'0ACB' => ['stat_info', 'v Z8', [qw(type val)]],
+		'0ACC' => ['exp', 'a4 Z8 v2', [qw(ID val type flag)]],
+		'0ACD' => ['login_error', 'C Z20', [qw(type date)]],
+		'0ADC' => ['flag', 'V', [qw(unknown)]],
+		'0ADE' => ['flag', 'V', [qw(unknown)]],
+		'0ADF' => ['actor_info', 'a4 a4 Z24 Z24', [qw(ID charID name prefix_name)]],
+		'0ADD' => ['item_exists', 'a4 v2 C v2 C2 v C v', [qw(ID nameID type identified x y subx suby amount show_effect effect_type )]],
+		'0AE3' => ['received_login_token', 'v l Z20 Z*', [qw(len login_type flag login_token)]],
+		'0AE4' => ['party_join', 'a4 a4 V v4 C Z24 Z24 Z16 C2', [qw(ID charID role jobID lv x y type name user map item_pickup item_share)]],
+ 		'0AE5' => ['party_users_info', 'v Z24 a*', [qw(len party_name playerInfo)]],
+		'C350' => ['senbei_vender_items_list'], #new senbei vender, need research
 	};
 
 	# Item RECORD Struct's
@@ -1196,46 +1228,6 @@ sub map_loaded {
 	makeCoordsDir($char->{pos}, $args->{coords}, \$char->{look}{body});
 	$char->{pos_to} = {%{$char->{pos}}};
 	message(TF("Your Coordinates: %s, %s\n", $char->{pos}{x}, $char->{pos}{y}), undef, 1);
-}
-
-sub actor_look_at {
-	my ($self, $args) = @_;
-	return unless changeToInGameState();
-
-	my $actor = Actor::get($args->{ID});
-	$actor->{look}{head} = $args->{head};
-	$actor->{look}{body} = $args->{body};
-	debug $actor->nameString . " looks at $args->{body}, $args->{head}\n", "parseMsg";
-}
-
-sub actor_movement_interrupted {
-	my ($self, $args) = @_;
-	return unless changeToInGameState();
-	my %coords;
-	$coords{x} = $args->{x};
-	$coords{y} = $args->{y};
-
-	my $actor = Actor::get($args->{ID});
-	$actor->{pos} = {%coords};
-	$actor->{pos_to} = {%coords};
-	if ($actor->isa('Actor::You') || $actor->isa('Actor::Player')) {
-		$actor->{sitting} = 0;
-	}
-	if ($actor->isa('Actor::You')) {
-		debug "Movement interrupted, your coordinates: $coords{x}, $coords{y}\n", "parseMsg_move";
-		AI::clear("move");
-	}
-	if ($char->{homunculus} && $char->{homunculus}{ID} eq $actor->{ID}) {
-		AI::clear("move");
-	}
-}
-
-sub actor_trapped {
-	my ($self, $args) = @_;
-	# original comment was that ID is not a valid ID
-	# but it seems to be, at least on eAthena/Freya
-	my $actor = Actor::get($args->{ID});
-	debug "$actor->nameString() is trapped.\n";
 }
 
 sub area_spell {
@@ -2122,7 +2114,7 @@ sub map_changed {
 		oldMap => $oldMap,
 	});
 	$timeout{ai}{time} = time;
-	$messageSender->sendBlockingPlayerCancel() if(grep { $masterServer->{serverType} eq $_ } qw( Zero )); # request to unfreeze char
+	$messageSender->sendBlockingPlayerCancel() if(grep { $masterServer->{serverType} eq $_ } qw( Zero idRO_Renewal )); # request to unfreeze char
 }
 
 sub memo_success {
@@ -2285,321 +2277,6 @@ sub npc_talk {
 						msg => $talk{msg},
 						});
 	message "$name: $msg\n", "npc";
-}
-
-# TODO: store this state
-sub party_allow_invite {
-   my ($self, $args) = @_;
-
-   if ($args->{type}) {
-      message T("Not allowed other player invite to Party\n"), "party", 1;
-   } else {
-      message T("Allowed other player invite to Party\n"), "party", 1;
-   }
-}
-
-sub party_chat {
-	my ($self, $args) = @_;
-	my $msg = $args->{message};
-
-	# Type: String
-	my ($chatMsgUser, $chatMsg) = $msg =~ /(.*?) : (.*)/;
-	$chatMsgUser =~ s/ $//;
-
-	stripLanguageCode(\$chatMsg);
-	# Type: String
-	my $chat = "$chatMsgUser : $chatMsg";
-	message TF("[Party] %s\n", $chat), "partychat";
-
-	chatLog("p", "$chat\n") if ($config{'logPartyChat'});
-	ChatQueue::add('p', $args->{ID}, $chatMsgUser, $chatMsg);
-
-	Plugins::callHook('packet_partyMsg', {
-		MsgUser => $chatMsgUser,
-		Msg => $chatMsg
-	});
-}
-
-sub party_exp {
-	my ($self, $args) = @_;
-	$char->{party}{share} = $args->{type}; # Always will be there, in 0101 also in 07D8
-	if ($args->{type} == 0) {
-		message T("Party EXP set to Individual Take\n"), "party", 1;
-	} elsif ($args->{type} == 1) {
-		message T("Party EXP set to Even Share\n"), "party", 1;
-	} else {
-		error T("Error setting party option\n");
-	}
-	if(exists($args->{itemPickup}) || exists($args->{itemDivision})) {
-		$char->{party}{itemPickup} = $args->{itemPickup};
-		$char->{party}{itemDivision} = $args->{itemDivision};
-		if ($args->{itemPickup} == 0) {
-			message T("Party item set to Individual Take\n"), "party", 1;
-		} elsif ($args->{itemPickup} == 1) {
-			message T("Party item set to Even Share\n"), "party", 1;
-		} else {
-			error T("Error setting party option\n");
-		}
-		if ($args->{itemDivision} == 0) {
-			message T("Party item division set to Individual Take\n"), "party", 1;
-		} elsif ($args->{itemDivision} == 1) {
-			message T("Party item division set to Even Share\n"), "party", 1;
-		} else {
-			error T("Error setting party option\n");
-		}
-	}
-}
-
-sub party_leader {
-	my ($self, $args) = @_;
-	for (my $i = 0; $i < @partyUsersID; $i++) {
-		if (unpack("V",$partyUsersID[$i]) eq $args->{new}) {
-			$char->{party}{users}{$partyUsersID[$i]}{admin} = 1;
-			message TF("New party leader: %s\n", $char->{party}{users}{$partyUsersID[$i]}{name}), "party", 1;
-		}
-		if (unpack("V",$partyUsersID[$i]) eq $args->{old}) {
-			$char->{party}{users}{$partyUsersID[$i]}{admin} = '';
-		}
-	}
-}
-
-# 0x803
-sub booking_register_request {
-	my ($self, $args) = @_;
-	my $result = $args->{result};
-
-	if ($result == 0) {
-	message T("Booking successfully created!\n"), "booking";
-	} elsif ($result == 2) {
-	error T("You already got a reservation group active!\n"), "booking";
-	} else {
-	error TF("Unknown error in creating the group booking (Error %s)\n", $result), "booking";
-	}
-}
-
-# 0x805
-sub booking_search_request {
-	my ($self, $args) = @_;
-
-	if (length($args->{innerData}) == 0) {
-		error T("Without results!\n"), "booking";
-		return;
-	}
-
-	message T("-------------- Booking Search ---------------\n");
-	for (my $offset = 0; $offset < length($args->{innerData}); $offset += 48) {
-		my ($index, $charName, $expireTime, $level, $mapID, @job) = unpack("V Z24 V s8", substr($args->{innerData}, $offset, 48));
-		message swrite(
-			T("Name: \@<<<<<<<<<<<<<<<<<<<<<<<<	Index: \@>>>>\n" .
-			"Created: \@<<<<<<<<<<<<<<<<<<<<<	Level: \@>>>\n" .
-			"MapID: \@<<<<<\n".
-			"Job: \@<<<< \@<<<< \@<<<< \@<<<< \@<<<<\n" .
-			"---------------------------------------------"),
-			[bytesToString($charName), $index, getFormattedDate($expireTime), $level, $mapID, @job]), "booking";
-	}
-}
-
-# 0x807
-sub booking_delete_request {
-	my ($self, $args) = @_;
-	my $result = $args->{result};
-
-	if ($result == 0) {
-	message T("Reserve deleted successfully!\n"), "booking";
-	} elsif ($result == 3) {
-	error T("You're not with a group booking active!\n"), "booking";
-	} else {
-	error TF("Unknown error in deletion of group booking (Error %s)\n", $result), "booking";
-	}
-}
-
-# 0x809
-sub booking_insert {
-	my ($self, $args) = @_;
-
-	message TF("%s has created a new group booking (index: %s)\n", bytesToString($args->{name}), $args->{ID});
-}
-
-# 0x80A
-sub booking_update {
-	my ($self, $args) = @_;
-
-	message TF("Reserve index of %s has changed its settings\n", $args->{ID});
-}
-
-# 0x80B
-sub booking_delete {
-	my ($self, $args) = @_;
-
-	message TF("Deleted reserve group index %s\n", $args->{ID});
-}
-
-sub party_hp_info {
-	my ($self, $args) = @_;
-	my $ID = $args->{ID};
-
-	if ($char->{party}{users}{$ID}) {
-		$char->{party}{users}{$ID}{hp} = $args->{hp};
-		$char->{party}{users}{$ID}{hp_max} = $args->{hp_max};
-	}
-}
-
-sub party_invite {
-	my ($self, $args) = @_;
-	message TF("Incoming Request to join party '%s'\n", bytesToString($args->{name}));
-	$incomingParty{ID} = $args->{ID};
-	$incomingParty{ACK} = $args->{switch} eq '02C6' ? '02C7' : '00FF';
-	$timeout{ai_partyAutoDeny}{time} = time;
-}
-
-use constant {
-  ANSWER_ALREADY_OTHERGROUPM => 0x0,
-  ANSWER_JOIN_REFUSE => 0x1,
-  ANSWER_JOIN_ACCEPT => 0x2,
-  ANSWER_MEMBER_OVERSIZE => 0x3,
-  ANSWER_DUPLICATE => 0x4,
-  ANSWER_JOINMSG_REFUSE => 0x5,
-  ANSWER_UNKNOWN_ERROR => 0x6,
-  ANSWER_UNKNOWN_CHARACTER => 0x7,
-  ANSWER_INVALID_MAPPROPERTY => 0x8,
-};
-
-sub party_invite_result {
-	my ($self, $args) = @_;
-	my $name = bytesToString($args->{name});
-	if ($args->{type} == ANSWER_ALREADY_OTHERGROUPM) {
-		warning TF("Join request failed: %s is already in a party\n", $name);
-	} elsif ($args->{type} == ANSWER_JOIN_REFUSE) {
-		warning TF("Join request failed: %s denied request\n", $name);
-	} elsif ($args->{type} == ANSWER_JOIN_ACCEPT) {
-		message TF("%s accepted your request\n", $name), "info";
-	} elsif ($args->{type} == ANSWER_MEMBER_OVERSIZE) {
-		message T("Join request failed: Party is full.\n"), "info";
-	} elsif ($args->{type} == ANSWER_DUPLICATE) {
-		message TF("Join request failed: same account of %s allready joined the party.\n", $name), "info";
-	} elsif ($args->{type} == ANSWER_JOINMSG_REFUSE) {
-		message TF("Join request failed: ANSWER_JOINMSG_REFUSE.\n", $name), "info";
-	} elsif ($args->{type} == ANSWER_UNKNOWN_ERROR) {
-		message TF("Join request failed: unknown error.\n", $name), "info";
-	} elsif ($args->{type} == ANSWER_UNKNOWN_CHARACTER) {
-		message TF("Join request failed: the character is not currently online or does not exist.\n", $name), "info";
-	} elsif ($args->{type} == ANSWER_INVALID_MAPPROPERTY) {
-		message TF("Join request failed: ANSWER_INVALID_MAPPROPERTY.\n", $name), "info";
-	}
-}
-
-sub party_join {
-	my ($self, $args) = @_;
-
-	return unless changeToInGameState();
-	my ($ID, $role, $x, $y, $type, $name, $user, $map) = @{$args}{qw(ID role x y type name user map)};
-	$name = bytesToString($name);
-	$user = bytesToString($user);
-
-	if (!$char->{party}{joined} || !$char->{party}{users}{$ID} || !%{$char->{party}{users}{$ID}}) {
-		binAdd(\@partyUsersID, $ID) if (binFind(\@partyUsersID, $ID) eq "");
-		if ($ID eq $accountID) {
-			message TF("You joined party '%s'\n", $name), undef, 1;
-			# Some servers receive party_users_info before party_join when logging in
-			# This is to prevent clearing info already in $char->{party}
-			$char->{party} = {} unless ref($char->{party}) eq "HASH";
-			$char->{party}{joined} = 1;
-			Plugins::callHook('packet_partyJoin', { partyName => $name });
-		} else {
-			message TF("%s joined your party '%s'\n", $user, $name), undef, 1;
-		}
-	}
-
-	my $actor = $char->{party}{users}{$ID} && %{$char->{party}{users}{$ID}} ? $char->{party}{users}{$ID} : new Actor::Party;
-
-	$actor->{admin} = !$role;
-	delete $actor->{statuses} unless $actor->{online} = !$type;
-	$actor->{pos}{x} = $x;
-	$actor->{pos}{y} = $y;
-	$actor->{map} = $map;
-	$actor->{name} = $user;
-	$actor->{ID} = $ID;
-	$char->{party}{users}{$ID} = $actor;
-	$char->{party}{name} = $name;
-}
-
-use constant {
-	GROUPMEMBER_DELETE_LEAVE => 0x0,
-	GROUPMEMBER_DELETE_EXPEL => 0x1,
-};
-
-sub party_leave {
-	my ($self, $args) = @_;
-
-	my $ID = $args->{ID};
-	my $actor = $char->{party}{users}{$ID}; # bytesToString($args->{name})
-	delete $char->{party}{users}{$ID};
-	binRemove(\@partyUsersID, $ID);
-	if ($ID eq $accountID) {
-		$actor = $char;
-		delete $char->{party};
-		undef @partyUsersID;
-		$char->{party}{joined} = 0;
-	}
-
-	if ($args->{result} == GROUPMEMBER_DELETE_LEAVE) {
-		message TF("%s left the party\n", $actor);
-	} elsif ($args->{result} == GROUPMEMBER_DELETE_EXPEL) {
-		message TF("%s left the party (kicked)\n", $actor);
-	} else {
-		message TF("%s left the party (unknown reason: %d)\n", $actor, $args->{result});
-	}
-}
-
-sub party_location {
-	my ($self, $args) = @_;
-
-	my $ID = $args->{ID};
-
-	if ($char->{party}{users}{$ID}) {
-		$char->{party}{users}{$ID}{pos}{x} = $args->{x};
-		$char->{party}{users}{$ID}{pos}{y} = $args->{y};
-		$char->{party}{users}{$ID}{online} = 1;
-		debug "Party member location: $char->{party}{users}{$ID}{name} - $args->{x}, $args->{y}\n", "parseMsg";
-	}
-}
-
-sub party_organize_result {
-	my ($self, $args) = @_;
-
-	unless ($args->{fail}) {
-		$char->{party}{users}{$accountID}{admin} = 1 if $char->{party}{users}{$accountID};
-	} elsif ($args->{fail} == 1) {
-		warning T("Can't organize party - party name exists\n");
-	} elsif ($args->{fail} == 2) {
-		warning T("Can't organize party - you are already in a party\n");
-	} elsif ($args->{fail} == 3) {
-		warning T("Can't organize party - not allowed in current map\n");
-	} else {
-		warning TF("Can't organize party - unknown (%d)\n", $args->{fail});
-	}
-}
-
-sub party_users_info {
-	my ($self, $args) = @_;
-	return unless changeToInGameState();
-
-	my $msg = $args->{RAW_MSG};
-	$char->{party}{name} = bytesToString($args->{party_name});
-
-	for (my $i = 28; $i < $args->{RAW_MSG_SIZE}; $i += 46) {
-		my $ID = substr($msg, $i, 4);
-		if (binFind(\@partyUsersID, $ID) eq "") {
-			binAdd(\@partyUsersID, $ID);
-		}
-		$char->{party}{users}{$ID} = new Actor::Party();
-		$char->{party}{users}{$ID}{name} = bytesToString(unpack("Z24", substr($msg, $i + 4, 24)));
-		$char->{party}{users}{$ID}{map} = unpack("Z16", substr($msg, $i + 28, 16));
-		$char->{party}{users}{$ID}{admin} = !(unpack("C1", substr($msg, $i + 44, 1)));
-		$char->{party}{users}{$ID}{online} = !(unpack("C1",substr($msg, $i + 45, 1)));
-		$char->{party}{users}{$ID}->{ID} = $ID;
-		debug TF("Party Member: %s (%s)\n", $char->{party}{users}{$ID}{name}, $char->{party}{users}{$ID}{map}), "party", 1;
-	}	
 }
 
 sub pet_capture_result {
@@ -2944,55 +2621,6 @@ sub received_characters {
 	}
 }
 
-sub received_character_ID_and_Map {
-	my ($self, $args) = @_;
-	message T("Received character ID and Map IP from Character Server\n"), "connection";
-	$net->setState(4);
-	undef $conState_tries;
-	$charID = $args->{charID};
-
-	if ($net->version == 1) {
-		undef $masterServer;
-		$masterServer = $masterServers{$config{master}} if ($config{master} ne "");
-	}
-
-	my ($map) = $args->{mapName} =~ /([\s\S]*)\./; # cut off .gat
-	my $map_noinstance;
-	($map_noinstance, undef) = Field::nameToBaseName(undef, $map); # Hack to clean up InstanceID
-	if (!$field || $map ne $field->name()) {
-		eval {
-			$field = new Field(name => $map);
-		};
-		if (my $e = caught('FileNotFoundException', 'IOException')) {
-			error TF("Cannot load field %s: %s\n", $map_noinstance, $e);
-			undef $field;
-		} elsif ($@) {
-			die $@;
-		}
-	}
-
-	$map_ip = makeIP($args->{mapIP});
-	$map_ip = $masterServer->{ip} if ($masterServer && $masterServer->{private});
-	$map_port = $args->{mapPort};
-	message TF("----------Game Info----------\n" .
-		"Char ID: %s (%s)\n" .
-		"MAP Name: %s\n" .
-		"MAP IP: %s\n" .
-		"MAP Port: %s\n" .
-		"-----------------------------\n", getHex($charID), unpack("V1", $charID),
-		$args->{mapName}, $map_ip, $map_port), "connection";
-	checkAllowedMap($map_noinstance);
-	message(T("Closing connection to Character Server\n"), "connection") unless ($net->version == 1);
-	$net->serverDisconnect(1);
-	main::initStatVars();
-}
-
-sub received_sync {
-	return unless changeToInGameState();
-	debug "Received Sync\n", 'parseMsg', 2;
-	$timeout{'play'}{'time'} = time;
-}
-
 sub refine_result {
 	my ($self, $args) = @_;
 	if ($args->{fail} == 0) {
@@ -3257,94 +2885,6 @@ sub sense_result {
 			$args->{ice}, $args->{earth}, $args->{fire}, $args->{wind}, $args->{poison}, $args->{holy}, $args->{dark},
 			$args->{spirit}, $args->{undead}), "list";
 }
-
-# Your shop has sold an item -- one packet sent per item sold.
-#
-sub shop_sold {
-	my ($self, $args) = @_;
-
-	# sold something
-	my $number = $args->{number};
-	my $amount = $args->{amount};
-
-	$articles[$number]{sold} += $amount;
-	my $earned = $amount * $articles[$number]{price};
-	$shopEarned += $earned;
-	$articles[$number]{quantity} -= $amount;
-	my $msg = TF("Sold: %s x %s - %sz\n", $articles[$number]{name}, $amount, $earned);
-	shopLog($msg);
-	message($msg, "sold");
-
-	# Call hook before we possibly remove $articles[$number] or
-	# $articles itself as a result of the sale.
-	Plugins::callHook(
-		'vending_item_sold',
-		{
-			'vendShopIndex' => $number,
-			'amount' => $amount,
-			'vendArticle' => $articles[$number], #This is a hash
-			'zenyEarned' => $earned,
-			'packetType' => "short",
-		}
-	);
-
-	# Adjust the shop's articles for sale, and notify if the sold
-	# item and/or the whole shop has been sold out.
-	if ($articles[$number]{quantity} < 1) {
-		message TF("sold out: %s\n", $articles[$number]{name}), "sold";
-		#$articles[$number] = "";
-		if (!--$articles){
-			message T("Items have been sold out.\n"), "sold";
-			closeShop();
-		}
-	}
-}
-
-sub shop_sold_long {
-	my ($self, $args) = @_;
-
-	# sold something
-	my $number = $args->{number};
-	my $amount = $args->{amount};
-	my $earned = $args->{zeny};
-	my $charID = getHex($args->{charID});
-	my $when = $args->{time};
-
-	$articles[$number]{sold} += $amount;
-	$shopEarned += $earned;
-	$articles[$number]{quantity} -= $amount;
-	
-	my $msg = TF("[%s] Sold: %s x %s - %sz (Buyer charID: %s)\n", getFormattedDate($when), $articles[$number]{name}, $amount, $earned, $charID);
-	shopLog($msg);
-	message($msg, "sold");
-
-	# Call hook before we possibly remove $articles[$number] or
-	# $articles itself as a result of the sale.
-	Plugins::callHook(
-		'vending_item_sold',
-		{
-			'vendShopIndex' => $number,
-			'amount' => $amount,
-			'vendArticle' => $articles[$number], #This is a hash
-			'buyerCharID' => $args->{charID},
-			'zenyEarned' => $earned,
-			'time' => $when,
-			'packetType' => "long",
-		}
-	);
-
-	# Adjust the shop's articles for sale, and notify if the sold
-	# item and/or the whole shop has been sold out.
-	if ($articles[$number]{quantity} < 1) {
-		message TF("sold out: %s\n", $articles[$number]{name}), "sold";
-		#$articles[$number] = "";
-		if (!--$articles){
-			message T("Items have been sold out.\n"), "sold";
-			closeShop();
-		}
-	}
-}
-
 
 # TODO:
 # Add 'dispose' support
@@ -4987,31 +4527,6 @@ sub auction_add_item {
 	}
 }
 
-# this info will be sent to xkore 2 clients
-sub hotkeys {
-	my ($self, $args) = @_;
-	undef $hotkeyList;
-	my $msg;
-	$msg .= center(" " . T("Hotkeys") . " ", 79, '-') . "\n";
-	$msg .=	swrite(sprintf("\@%s \@%s \@%s \@%s", ('>'x3), ('<'x30), ('<'x5), ('>'x3)),
-			["#", T("Name"), T("Type"), T("Lv")]);
-	$msg .= sprintf("%s\n", ('-'x79));
-	my $j = 0;
-	for (my $i = 2; $i < $args->{RAW_MSG_SIZE}; $i+=7) {
-		$hotkeyList->[$j]->{type} = unpack("C1", substr($args->{RAW_MSG}, $i, 1));
-		$hotkeyList->[$j]->{ID} = unpack("V1", substr($args->{RAW_MSG}, $i+1, 4));
-		$hotkeyList->[$j]->{lv} = unpack("v1", substr($args->{RAW_MSG}, $i+5, 2));
-
-		$msg .= swrite(TF("\@%s \@%s \@%s \@%s", ('>'x3), ('<'x30), ('<'x5), ('>'x3)),
-			[$j, $hotkeyList->[$j]->{type} ? Skill->new(idn => $hotkeyList->[$j]->{ID})->getName() : itemNameSimple($hotkeyList->[$j]->{ID}),
-			$hotkeyList->[$j]->{type} ? T("skill") : T("item"),
-			$hotkeyList->[$j]->{lv}]);
-		$j++;
-	}
-	$msg .= sprintf("%s\n", ('-'x79));
-	debug($msg, "list");
-}
-
 sub hack_shield_alarm {
 	error T("Error: You have been forced to disconnect by a Hack Shield.\n Please check Poseidon.\n"), "connection";
 	Commands::run('relog 100000000');
@@ -5224,22 +4739,6 @@ sub cooking_list {
 	$msg .= sprintf("%s\n", ('-'x79));
 	message($msg, "list");
 	message T("You can now use the 'cook' command.\n"), "info";
-}
-
-sub party_show_picker {
-	my ($self, $args) = @_;
-
-	# wtf the server sends this packet for your own character? (rRo)
-	return if $args->{sourceID} eq $accountID;
-
-	my $string = ($char->{party}{users}{$args->{sourceID}} && %{$char->{party}{users}{$args->{sourceID}}}) ? $char->{party}{users}{$args->{sourceID}}->name() : $args->{sourceID};
-	my $item = {};
-	$item->{nameID} = $args->{nameID};
-	$item->{identified} = $args->{identified};
-	$item->{upgrade} = $args->{upgrade};
-	$item->{cards} = $args->{cards};
-	$item->{broken} = $args->{broken};
-	message TF("Party member %s has picked up item %s.\n", $string, itemName($item)), "info";
 }
 
 # 02CB
@@ -5848,6 +5347,18 @@ sub skill_post_delaylist {
 	}
 }
 
+sub skill_post_delaylist2 {
+	my ($self, $args) = @_;
+	my $unpack = "v V2";
+	for (my $i = 0; $i < ($args->{packet_len} - 4); $i += 10) {
+		my ($skill, $totalDelay, $remainDelay) = unpack($unpack, substr($args->{msg}, $i));
+		my $skillName = (new Skill(idn => $skill))->getName;
+		my $status = defined $statusName{'EFST_DELAY'} ? $statusName{'EFST_DELAY'} : 'Delay';
+
+		$char->setStatus($skillName." ".$status, 1, $remainDelay);
+	}
+}
+
 sub msg_string {
 	my ($self, $args) = @_;
 	message TF("index: %s para1: %s\n", $args->{ID}, $args->{para1}), "info";
@@ -5999,270 +5510,6 @@ sub senbei_amount {
 	my ($self, $args) = @_;
 	
 	$char->{senbei} = $args->{senbei};
-}
-
-sub rodex_mail_list {
-	my ( $self, $args ) = @_;
-	
-	my $msg = $args->{RAW_MSG};
-	my $msg_size = $args->{RAW_MSG_SIZE};
-	my $header_pack = 'v C C C';
-	my $header_len = ((length pack $header_pack) + 2);
-	
-	my $mail_pack = 'V2 C C Z24 V V v';
-	my $base_mail_len = length pack $mail_pack;
-	
-	if ($args->{switch} eq '0A7D') {
-		$rodexList->{current_page} = 0;
-		$rodexList = {};
-		$rodexList->{mails} = {};
-	} else {
-		$rodexList->{current_page}++;
-	}
-	
-	if ($args->{isEnd} == 1) {
-		$rodexList->{last_page} = $rodexList->{current_page};
-	} else {
-		$rodexList->{mails_per_page} = $args->{amount};
-	}
-	
-	my $mail_len;
-	
-	my $print_msg = center(" " . "Rodex Mail Page ". $rodexList->{current_page} . " ", 79, '-') . "\n";
-	
-	my $index = 0;
-	for (my $i = $header_len; $i < $args->{RAW_MSG_SIZE}; $i+=$mail_len) {
-		my $mail;
-
-		($mail->{mailID1},
-		$mail->{mailID2},
-		$mail->{isRead},
-		$mail->{type},
-		$mail->{sender},
-		$mail->{regDateTime},
-		$mail->{expireDateTime},
-		$mail->{Titlelength}) = unpack($mail_pack, substr($msg, $i, $base_mail_len));
-		
-		$mail->{title} = substr($msg, ($i+$base_mail_len), $mail->{Titlelength});
-		
-		$mail->{page} = $rodexList->{current_page};
-		$mail->{page_index} = $index;
-		
-		$mail_len = $base_mail_len + $mail->{Titlelength};
-		
-		$rodexList->{mails}{$mail->{mailID1}} = $mail;
-		
-		$rodexList->{current_page_last_mailID} = $mail->{mailID1};
-		
-		$print_msg .= swrite("@<<< @<<<<< @<<<<<<<<<<<<<<<<<<<<<<<< @<<<<<< @<<< @<<< @<<<<<<<< @<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<", [$index, "From:", $mail->{sender}, "Read:", $mail->{isRead} ? "Yes" : "No", "ID:", $mail->{mailID1}, "Title:", $mail->{title}]);
-		
-		$index++;
-	}
-	$print_msg .= sprintf("%s\n", ('-'x79));
-	message $print_msg, "list";
-}
-
-sub rodex_read_mail {
-	my ( $self, $args ) = @_;
-	
-	my $msg = $args->{RAW_MSG};
-	my $msg_size = $args->{RAW_MSG_SIZE};
-	my $header_pack = 'v C V2 v V2 C';
-	my $header_len = ((length pack $header_pack) + 2);
-	
-	my $mail = {};
-	
-	$mail->{body} = substr($msg, $header_len, $args->{text_len});
-	$mail->{zeny1} = $args->{zeny1};
-	$mail->{zeny2} = $args->{zeny2};
-	
-	my $item_pack = 'v2 C3 a8 a4 C a4 a25';
-	my $item_len = length pack $item_pack;
-	
-	my $mail_len;
-	
-	$mail->{items} = [];
-	
-	my $print_msg = center(" " . "Mail ".$args->{mailID1} . " ", 79, '-') . "\n";
-	
-	my @message_parts = unpack("(A51)*", $mail->{body});
-	
-	$print_msg .= swrite("@<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", ["Message:", $message_parts[0]]);
-	
-	foreach my $part (@message_parts[1..$#message_parts]) {
-		$print_msg .= swrite("@<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", ["", $part]);
-	}
-	
-	$print_msg .= swrite("@<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", ["Item count:", $args->{itemCount}]);
-	
-	$print_msg .= swrite("@<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", ["Zeny:", $args->{zeny1}]);
-
-	my $index = 0;
-	for (my $i = ($header_len + $args->{text_len}); $i < $args->{RAW_MSG_SIZE}; $i += $item_len) {
-		my $item;
-		($item->{amount},
-		$item->{nameID},
-		$item->{identified},
-		$item->{broken},
-		$item->{upgrade},
-		$item->{cards},
-		$item->{unknow1},
-		$item->{type},
-		$item->{unknow2},
-		$item->{options}) = unpack($item_pack, substr($msg, $i, $item_len));
-		
-		$item->{name} = itemName($item);
-		
-		my $display = $item->{name};
-		$display .= " x $item->{amount}";
-		
-		$print_msg .= swrite("@<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", [$index, $display]);
-		
-		push(@{$mail->{items}}, $item);
-		$index++;
-	}
-	
-	$print_msg .= sprintf("%s\n", ('-'x79));
-	message $print_msg, "list";
-	
-	@{$rodexList->{mails}{$args->{mailID1}}}{qw(body items zeny1 zeny2)} = @{$mail}{qw(body items zeny1 zeny2)};
-	
-	$rodexList->{mails}{$args->{mailID1}}{isRead} = 1;
-	
-	$rodexList->{current_read} = $args->{mailID1};
-}
-
-sub unread_rodex {
-	my ( $self, $args ) = @_;
-	message "You have new unread rodex mails.\n";
-}
-
-sub rodex_remove_item {
-	my ( $self, $args ) = @_;
-	
-	if (!$args->{result}) {
-		error "You failed to remove an item from rodex mail.\n";
-		return;
-	}
-	
-	my $rodex_item = $rodexWrite->{items}->getByID($args->{ID});
-	
-	my $disp = TF("Item removed from rodex mail message: %s (%d) x %d - %s",
-			$rodex_item->{name}, $rodex_item->{binID}, $args->{amount}, $itemTypes_lut{$rodex_item->{type}});
-	message "$disp\n", "drop";
-	
-	$rodex_item->{amount} -= $args->{amount};
-	if ($rodex_item->{amount} <= 0) {
-		$rodexWrite->{items}->remove($rodex_item);
-	}
-}
-
-sub rodex_add_item {
-	my ( $self, $args ) = @_;
-	
-	if ($args->{fail}) {
-		error "You failed to add an item to rodex mail.\n";
-		return;
-	}
-	
-	my $rodex_item = $rodexWrite->{items}->getByID($args->{ID});
-	
-	if ($rodex_item) {
-		$rodex_item->{amount} += $args->{amount};
-	} else {
-		$rodex_item = new Actor::Item();
-		$rodex_item->{ID} = $args->{ID};
-		$rodex_item->{nameID} = $args->{nameID};
-		$rodex_item->{type} = $args->{type};
-		$rodex_item->{amount} = $args->{amount};
-		$rodex_item->{identified} = $args->{identified};
-		$rodex_item->{broken} = $args->{broken};
-		$rodex_item->{upgrade} = $args->{upgrade};
-		$rodex_item->{cards} = $args->{cards};
-		$rodex_item->{options} = $args->{options};
-		$rodex_item->{name} = itemName($rodex_item);
-
-		$rodexWrite->{items}->add($rodex_item);
-	}
-	
-	my $disp = TF("Item added to rodex mail message: %s (%d) x %d - %s",
-			$rodex_item->{name}, $rodex_item->{binID}, $args->{amount}, $itemTypes_lut{$rodex_item->{type}});
-	message "$disp\n", "drop";
-}
-
-sub rodex_open_write {
-	my ( $self, $args ) = @_;
-	
-	$rodexWrite = {};
-	
-	$rodexWrite->{items} = new InventoryList;
-	
-}
-
-sub rodex_check_player {
-	my ( $self, $args ) = @_;
-	
-	if (!$args->{char_id}) {
-		error "Could not find player with name '".$args->{name}."'.";
-		return;
-	}
-	
-	my $print_msg = center(" " . "Rodex Mail Target" . " ", 79, '-') . "\n";
-	
-	$print_msg .= swrite("@<<<<< @<<<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<< @<<< @<<<<<< @<<<<<<<<<<<<<<< @<<<<<<<< @<<<<<<<<<", ["Name:", $args->{name}, "Base Level:", $args->{base_level}, "Class:", $args->{class}, "Char ID:", $args->{char_id}]);
-	
-	$print_msg .= sprintf("%s\n", ('-'x79));
-	message $print_msg, "list";
-	
-	@{$rodexWrite->{target}}{qw(name base_level class char_id)} = @{$args}{qw(name base_level class char_id)};
-}
-
-sub rodex_write_result {
-	my ( $self, $args ) = @_;
-	
-	if ($args->{fail}) {
-		error "You failed to send the rodex mail.\n";
-		return;
-	}
-	
-	message "Your rodex mail was sent with success.\n";
-	undef $rodexWrite;
-}
-
-sub rodex_get_zeny {
-	my ( $self, $args ) = @_;
-	
-	if ($args->{fail}) {
-		error "You failed to get the zeny of the rodex mail.\n";
-		return;
-	}
-	
-	message "The zeny of the rodex mail was requested with success.\n";
-	
-	$rodexList->{mails}{$args->{mailID1}}{zeny1} = 0;
-}
-
-sub rodex_get_item {
-	my ( $self, $args ) = @_;
-	
-	if ($args->{fail}) {
-		error "You failed to get the items of the rodex mail.\n";
-		return;
-	}
-	
-	message "The items of the rodex mail were requested with success.\n";
-	
-	$rodexList->{mails}{$args->{mailID1}}{items} = [];
-}
-
-sub rodex_delete {
-	my ( $self, $args ) = @_;
-	
-	return unless (exists $rodexList->{mails}{$args->{mailID1}});
-	
-	message "You have deleted the mail of ID ".$args->{mailID1}.".\n";
-	
-	delete $rodexList->{mails}{$args->{mailID1}};
 }
 
 sub monster_hp_info_tiny {
