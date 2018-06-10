@@ -10,10 +10,10 @@
 #  See http://www.gnu.org/licenses/gpl.html for the full license.
 ########################################################################
 
-package Network::Send::kRO::RagexeRE_2015_12_30a;
+package Network::Send::kRO::RagexeRE_2017_02_08b;
 
 use strict;
-use base qw(Network::Send::kRO::RagexeRE_2015_12_02);
+use base qw(Network::Send::kRO::RagexeRE_2017_02_01a);
 
 sub new {
 	my ($class) = @_;
@@ -22,26 +22,26 @@ sub new {
 	my %packets = (
 		'0369' => ['actor_action', 'a4 C', [qw(targetID type)]],
 		'096A' => ['actor_info_request', 'a4', [qw(ID)]],
-		'0869' => ['actor_look_at', 'v C', [qw(head body)]],
+		'0860' => ['actor_look_at', 'v C', [qw(head body)]],
 		'0368' => ['actor_name_request', 'a4', [qw(ID)]],
 		'0811' => ['buy_bulk_buyer', 'a4 a4 a*', [qw(buyerID buyingStoreID itemInfo)]], #Buying store
 		'0817' => ['buy_bulk_closeShop'],			
-		'0436' => ['buy_bulk_openShop', 'a4 c a*', [qw(limitZeny result itemInfo)]], #Selling store
+		'0815' => ['buy_bulk_openShop', 'a4 c a*', [qw(limitZeny result itemInfo)]], #Selling store
 		'0360' => ['buy_bulk_request', 'a4', [qw(ID)]], #6
 		'0437' => ['character_move', 'a3', [qw(coordString)]],
-		'088E' => ['friend_request', 'a*', [qw(username)]],# len 26
-		'0949' => ['homunculus_command', 'v C', [qw(commandType, commandID)]],
-		'0897' => ['item_drop', 'a2 v', [qw(ID amount)]],
-		'085B' => ['item_list_window_selected', 'v V V a*', [qw(len type act itemInfo)]],
-		'094E' => ['item_take', 'a4', [qw(ID)]],
-		'0815' => ['map_login', 'a4 a4 a4 V C', [qw(accountID charID sessionID tick sex)]],
-		'0861' => ['party_join_request_by_name', 'Z24', [qw(partyName)]],
+		'0892' => ['friend_request', 'a*', [qw(username)]],# len 26
+		'092D' => ['homunculus_command', 'v C', [qw(commandType, commandID)]],
+		'0921' => ['item_drop', 'a2 v', [qw(ID amount)]],
+		'0367' => ['item_list_window_selected', 'v V V a*', [qw(len type act itemInfo)]],
+		'0923' => ['item_take', 'a4', [qw(ID)]],
+		'088C' => ['map_login', 'a4 a4 a4 V C', [qw(accountID charID sessionID tick sex)]],
+		'085C' => ['party_join_request_by_name', 'Z24', [qw(partyName)]],
 		'083C' => ['skill_use', 'v2 a4', [qw(lv skillID targetID)]],
-		'0886' => ['skill_use_location', 'v4', [qw(lv skillID x y)]],
-		'02C4' => ['storage_item_add', 'a2 V', [qw(ID amount)]],
-		'091D' => ['storage_item_remove', 'a2 V', [qw(ID amount)]],
-		'0923' => ['storage_password'],
-		'035F' => ['sync', 'V', [qw(time)]],	
+		'0438' => ['skill_use_location', 'v4', [qw(lv skillID x y)]],
+		'08AC' => ['storage_item_add', 'a2 V', [qw(ID amount)]],
+		'0932' => ['storage_item_remove', 'a2 V', [qw(ID amount)]],
+		'0937' => ['storage_password'],
+		'035F' => ['sync', 'V', [qw(time)]],		
 	);
 	
 	$self->{packet_list}{$_} = $packets{$_} for keys %packets;
@@ -49,35 +49,34 @@ sub new {
 	my %handlers = qw(
 		actor_action 0369
 		actor_info_request 096A
-		actor_look_at 0869
+		actor_look_at 0860
 		actor_name_request 0368
 		buy_bulk_buyer 0811
 		buy_bulk_closeShop 0817
-		buy_bulk_openShop 0436
+		buy_bulk_openShop 0815
 		buy_bulk_request 0360
 		character_move 0437
-		friend_request 088E
-		homunculus_command 0949
-		item_drop 0897
-		item_list_window_selected 085B
-		item_take 094E
-		map_login 0815
-		party_join_request_by_name 0861
+		friend_request 0892
+		homunculus_command 092D
+		item_drop 0921
+		item_list_window_selected 0367
+		item_take 0923
+		map_login 088C
+		party_join_request_by_name 085C
 		skill_use 083C
-		skill_use_location 0886
-		storage_item_add 02C4
-		storage_item_remove 091D
-		storage_password 0923
+		skill_use_location 0438
+		storage_item_add 08AC
+		storage_item_remove 0932
+		storage_password 0937
 		sync 035F
 	);
 	
 	
-	
 	$self->{packet_lut}{$_} = $handlers{$_} for keys %handlers;
-	
-##if PACKETVER == 20151230
-###packetKeys(0x54C51241,0x33883499,0x3CDA35F0);
-#	$self->cryptKeys(0x54C51241, 0x3CDA35F0, 0x33883499);
+#	#elif PACKETVER == 20170208 // 2017-02-08aRagexeRE
+#	packet_keys(0x6A764E5F,0x0609570D,0x28AE07FA);
+#	$self->cryptKeys(0x6A764E5F,0x28AE07FA,0x0609570D);
+
 
 	return $self;
 }

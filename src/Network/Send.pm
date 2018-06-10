@@ -1450,10 +1450,10 @@ sub sendEnteringVender {
 }
 
 sub sendUnequip {
-    my ($self, $itemIndex) = @_;
+    my ($self, $ID) = @_;
     $self->sendToServer($self->reconstruct({
         switch => 'send_unequip_item',
-        Index => $itemIndex,
+        ID => $ID,
     }));
 }
 
@@ -1548,5 +1548,25 @@ sub sendReqCashTabCode {
 		ID => $tabID,
 	}));
 }
+
+sub parse_pet_evolution {
+	my ($self, $args) = @_;
+	@{$args->{items}} = map {{ itemIndex => unpack('v', $_), amount => unpack('x2 v', $_) }} unpack '(a4)*', $args->{itemInfo};
+}
+
+sub reconstruct_pet_evolution {
+	my ($self, $args) = @_;
+	$args->{itemInfo} = pack '(a4)*', map { pack 'v2', @{$_}{qw(itemIndex amount)} } @{$args->{items}};
+}
+
+sub sendPetEvolution {
+	my ($self, $peteggid, $r_array) = @_;
+	$self->sendToServer($self->reconstruct({
+		switch => 'pet_evolution',
+		ID => $peteggid,
+		items => $r_array,
+	}));
+}
+
 
 1;
