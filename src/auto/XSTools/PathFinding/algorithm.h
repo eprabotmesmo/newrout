@@ -12,22 +12,10 @@ typedef struct Nodes{
     unsigned short parentY;
 	unsigned int whichlist : 2;
 	unsigned int openListIndex;
-	unsigned int weight;
 	unsigned int g;
 	unsigned short h;
 	unsigned int f;
 } Node;
-
-typedef struct {
-    int x;
-    int y;
-    int distanceFromCurrent;
-} eachNeigh;
-
-typedef struct {
-    eachNeigh neighborNodes[8];
-    int count;
-} Neighbors;
 
 typedef struct {
     int x;
@@ -50,16 +38,13 @@ typedef struct {
 	int size;
 	int openListSize;
 	TypeList* openList;
+	const char *map;
 	Node *currentMap;
 } CalcPath_session;
 
 CalcPath_session *CalcPath_new ();
 
-void GenerateMap(CalcPath_session *session, const char *map);
-
 int heuristic_cost_estimate(int currentX, int currentY, int goalX, int goalY, int avoidWalls);
-
-Neighbors organizeNeighborsStruct(CalcPath_session *session, Node* currentNode);
 
 void openListAdd (CalcPath_session *session, Node* infoAdress);
 
