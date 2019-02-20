@@ -4308,7 +4308,7 @@ sub checkSelfCondition {
 	# not working yet
 	if ($config{$prefix."_whenWater"}) {
 		my $pos = calcPosition($char);
-		return 0 if ($field->isWater($pos->{x}, $pos->{y}));
+		return 0 unless ($field->isWater($pos->{x}, $pos->{y}));
 	}
 	
 	if ($config{$prefix.'_devotees'}) {
