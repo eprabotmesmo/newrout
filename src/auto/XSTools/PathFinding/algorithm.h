@@ -5,70 +5,85 @@
 extern "C" {
 #endif /* __cplusplus */
 
+typedef struct {
+	unsigned int x;
+	unsigned int y;
+	long weight;
+	
+	unsigned long nodeAdress;
+	
+	unsigned long key1;
+	unsigned long key2;
+	
+	bool isInOpenList;
+	long openListIndex;
+	
+	unsigned long g;
+	unsigned long rhs;
+	
+	unsigned int sucessor;
+} Node;
 
 typedef struct {
-	unsigned short x;
-	unsigned short y;
-} pos;
-
-typedef struct {
-	unsigned int size;
-	pos *array;
-} pos_list;
-
-typedef struct {
-	pos p;
-	int g;
-	int f;
-	int parent;
-} pos_ai;
-
-typedef struct {
-	unsigned int size;
-	pos_ai *array;
-} pos_ai_list;
-
-typedef struct {
-	int val;
-	int index;
-} QuicksortFloat;
-
-typedef struct {
-	unsigned int size;
-	QuicksortFloat *array;
-} index_list;
-
-typedef struct {
-	unsigned int size;
-	int *array;
-} lookups_list;
-
-typedef struct {
-	pos_list solution;
-	pos_ai_list fullList;
-	index_list openList;
-	lookups_list lookup;
-	const char* map;
-	const unsigned char* weight;
-	unsigned long width;
-	unsigned long height;
-	pos * start;
-	pos * dest;
+	bool avoidWalls;
+	
 	unsigned long time_max;
-	int first_time;
-
-	void *map_sv;
-	void *weight_sv;
+	
+	unsigned int width;
+	unsigned int height;
+	
+	unsigned int startX;
+	unsigned int startY;
+	unsigned int endX;
+	unsigned int endY;
+	
+	int solution_size;
+	int initialized;
+	int run;
+	
+	long openListSize;
+	
+	unsigned int k;
+	
+	unsigned long *openList;
+	Node *currentMap;
 } CalcPath_session;
 
-
 CalcPath_session *CalcPath_new ();
-CalcPath_session *CalcPath_init (CalcPath_session *session, const char* map, const unsigned char* weight,
-	unsigned long width, unsigned long height,
-	pos * start, pos * dest, unsigned long time_max);
-int CalcPath_pathStep (CalcPath_session *session);
-void CalcPath_destroy (CalcPath_session *session);
 
+unsigned long* calcKey (Node* node, unsigned int startX, unsigned int startY, bool avoidWalls, unsigned int k);
+	
+int heuristic_cost_estimate (int currentX, int currentY, int startX, int startY, int avoidWalls);
+
+void openListAdd (CalcPath_session *session, Node* node);
+
+void openListRemove (CalcPath_session *session, Node* node);
+
+void reajustOpenListItem (CalcPath_session *session, Node* node, unsigned long newkey1, unsigned long newkey2);
+
+Node* openListGetLowest (CalcPath_session *session);
+
+void updateNode (CalcPath_session *session, Node* node);
+
+void reconstruct_path(CalcPath_session *session, Node* goal, Node* start);
+
+int CalcPath_pathStep (CalcPath_session *session);
+
+int recheck_all_nodes_in_binary_heap (CalcPath_session *session);
+
+int recheck_openList_removed (CalcPath_session *session, Node* removedNode);
+
+void get_new_neighbor_sucessor (CalcPath_session *session, Node *currentNode);
+ 
+CalcPath_session *CalcPath_init (CalcPath_session *session, unsigned char *map);
+
+int updateChangedMap (CalcPath_session *session, unsigned int x, unsigned int y, long delta_weight);
+
+void free_currentMap (CalcPath_session *session);
+
+void free_openList (CalcPath_session *session);
+
+void CalcPath_destroy (CalcPath_session *session);
 
 #ifdef __cplusplus
 }

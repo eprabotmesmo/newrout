@@ -228,16 +228,16 @@ CODE:
 	   interesting to pathfinding. */
 	New (0, data, len, unsigned char);
 	Copy (c_rawMap, data, len, unsigned char);
+	int info;
+	int walkable;
 	for (i = 0; i < (int) len; i++) {
-		// 0 is open, 3 is walkable water
-		switch (data[i]) {
-		case 0:
-		case 3:
+		// first bit is 'walkable' info
+		info = data[i];
+		walkable = (info & 1) ? 1 : 0;
+		if (walkable == 1) {
 			data[i] = 255;
-			break;
-		default:
+		} else {
 			data[i] = 0;
-			break;
 		}
 	}
 
@@ -331,6 +331,52 @@ CODE:
 						done = false;
 					}
 				}
+			}
+		}
+	}
+
+	RETVAL = newSVpv ((const char *) data, len);
+OUTPUT:
+	RETVAL
+
+
+SV *
+makeWeightMap(distMap, width, height)
+	SV *distMap
+	int width
+	int height
+INIT:
+	STRLEN len;
+	int i, x, y;
+	int dist, val;
+	unsigned char *c_weightMap, *data;
+CODE:
+	if (!SvOK (distMap))
+		XSRETURN_UNDEF;
+
+	c_weightMap = (unsigned char *) SvPV (distMap, len);
+	if ((int) len != width * height)
+		XSRETURN_UNDEF;
+
+	/* Simplify the raw map data. Each byte in the raw map data
+	   represents a block on the field, but only some bytes are
+	   interesting to pathfinding. */
+	New (0, data, len, unsigned char);
+	Copy (c_weightMap, data, len, unsigned char);
+	
+	int distance_to_weight[5] = { 0, 70, 60, 30, 20 };
+	int max_distance = 4;
+	int fill_weight = 10;
+
+	for (y = 0; y < height; y++) {
+		for (x = 0; x < width; x++) {
+			i = y * width + x; // i: cell to examine
+			dist = data[i]; // dist: dist of i from wall
+			
+			if (dist > max_distance) {
+				data[i] = fill_weight;
+			} else {
+				data[i] = distance_to_weight[dist];
 			}
 		}
 	}
