@@ -2161,3 +2161,53 @@ enew_1-3.rsw#new_zone03.rsw#
 9@pir_ma.gat#malangdo.gat#
 9@pir_ma.rsw#malangdo.rsw#
 삯샺샎엍웤샌붺\map\9@pir_ma.bmp#삯샺샎엍웤샌붺\map\malangdo.bmp#
+
+//Halloween 2018
+hal_in18.gnd#prt_in.gnd#
+
+hal_in18.gat#prt_in.gat#
+
+hal_in18.rsw#prt_in.rsw#
+
+삯샺샎엍웤샌붺\map\hal_in18.bmp#삯샺샎엍웤샌붺\map\prt_in.bmp#
+
+//Halloween 2018 Instance
+1@niflhe.gat#niflheim.gat#
+
+1@niflhe.rsw#niflheim.rsw#
+
+삯샺샎엍웤샌붺\map\1@niflhe.bmp#삯샺샎엍웤샌붺\map\niflheim.bmp#
+
+//Halloween 2018 Secret Dungeon
+1@rossi.gat#kh_rossi.gat#
+
+1@rossi.rsw#kh_rossi.rsw#
+
+삯샺샎엍웤샌붺\map\1@rossi.bmp#삯샺샎엍웤샌붺\map\kh_rossi.bmp#
+
+//Xmas 2018 Antonio's Workshop
+1@xlab.gnd#1@lab.gnd#
+1@xlab.gat#1@lab.gat#
+1@xlab.rsw#1@lab.rsw#
+삯샺샎엍웤샌붺\map\1@xlab.bmp#삯샺샎엍웤샌붺\map\1@lab.bmp#
+
+//VDAY 2019 Backstage
+vday19bs.gnd#prt_in.gnd#
+vday19bs.gat#prt_in.gat#
+vday19bs.rsw#prt_in.rsw#
+삯샺샎엍웤샌붺\map\vday19bs.bmp#삯샺샎엍웤샌붺\map\prt_in.bmp#
+
+//VDAY 2019 Main Stage
+vday19ms.gat#job_duncer.gat#
+vday19ms.rsw#job_duncer.rsw#
+삯샺샎엍웤샌붺\map\vday19ms.bmp#삯샺샎엍웤샌붺\map\job_duncer.bmp#
+
+//VDAY 2019 Main Stage - Female Playthrough
+vday19ms_f.gat#job_duncer.gat#
+vday19ms_f.rsw#job_duncer.rsw#
+삯샺샎엍웤샌붺\map\vday19ms_f.bmp#삯샺샎엍웤샌붺\map\job_duncer.bmp#
+
+//VDAY 2019 Date Dungeon
+vday19dd.gat#airplane.gat#
+vday19dd.rsw#airplane.rsw#
+삯샺샎엍웤샌붺\map\vday19dd.bmp#삯샺샎엍웤샌붺\map\airplane.bmp#

@@ -31,6 +31,7 @@ use Text::Balanced qw(extract_delimited);
 use Utils;
 use Utils::TextReader;
 use Plugins;
+use Settings;
 use Log qw(warning error debug);
 use Translation qw/T TF/;
 
@@ -62,6 +63,7 @@ our @EXPORT = qw(
 	parseSkillsSPLUT
 	parseTimeouts
 	parseWaypoint
+	parseItemStackLimit
 	processUltimate
 	writeDataFile
 	writeDataFileIntact
@@ -227,6 +229,13 @@ sub parseConfigFile {
 		$line =~ s/[\r\n]//g;	# Remove line endings
 		$line =~ s/^[\t\s]*//;	# Remove leading tabs and whitespace
 		$line =~ s/\s+$//g;	# Remove trailing whitespace
+		
+		if (index($line, '#') != -1) {
+			warning T("Mid-line comments are not allowed in this file and therefore might cause problems.\n"), "parseConfigFile", 5;
+			warning T("If the '#' found is not a comment, this can be ignored.\n"), "parseConfigFile", 5;
+			warning TF("HERE: %s", $line), "parseConfigFile", 5;
+		}
+		
 		next if ($line eq "");
 
 		if (!defined $commentBlock && $line =~ /^\/\*/) {
@@ -342,6 +351,8 @@ sub parseDataFile {
 		next if ($line =~ /^#/);
 		$line =~ s/[\r\n]//g;
 		$line =~ s/\s+$//g;
+		$line =~ s/\s*#.*// if ($file eq Settings::getControlFilename("routeweights.txt"));
+		next unless length $line;
 		($key, $value) = $line =~ /([\s\S]*) ([\s\S]*?)$/;
 		if ($key ne "" && $value ne "") {
 			$$r_hash{$key} = $value;
@@ -362,6 +373,8 @@ sub parseDataFile_lc {
 		next if ($line =~ /^#/);
 		$line =~ s/[\r\n]//g;
 		$line =~ s/\s+$//g;
+		$line =~ s/\s*#.*// if ($file eq Settings::getControlFilename('pickupitems.txt') or $file eq Settings::getControlFilename("arrowcraft.txt"));
+		next unless length $line;
 		($key, $value) = $line =~ /([\s\S]*) ([\s\S]*?)$/;
 		if ($key ne "" && $value ne "") {
 			$$r_hash{lc($key)} = $value;
@@ -446,6 +459,10 @@ sub parseShopControl {
 			$shop->{title_line} = $line;
 			next;
 		}
+		
+		# Strip mid-line comments after parsing the shop title, so shops can use '#' in their titles
+		$line =~ s/\s*#.*//;
+		next unless length $line;
 
 		my ($name, $price, $amount) = split(/\t+/, $line);
 		$price =~ s/^\s+//g;
@@ -545,6 +562,8 @@ sub parseMonControl {
 		next if ($line =~ /^#/);
 		$line =~ s/[\r\n]//g;
 		$line =~ s/\s+$//g;
+		$line =~ s/\s*#.*//;
+		next unless length $line;
 
 		if ($line =~ /\t/) {
 			($key, $args) = split /\t+/, lc($line);
@@ -654,6 +673,8 @@ sub parsePriority {
 		s/\x{FEFF}//g;
 		next if (/^#/);
 		s/[\r\n]//g;
+		s/\s*#.*//;
+		next unless length;
 		$$r_hash{lc($_)} = $pri + 1;
 		$pri--;
 	}
@@ -890,6 +911,8 @@ sub parseTimeouts {
 		$line =~ s/\x{FEFF}//g;
 		next if ($line =~ /^#/);
 		$line =~ s/[\r\n]//g;
+		$line =~ s/\s*#.*//;
+		next unless length $line;
 
 		my ($key, $value) = $line =~ /([\s\S]+?) ([\s\S]*?)$/;
 		my @args = split (/ /, $value);
@@ -920,6 +943,32 @@ sub parseWaypoint {
 		push @{$r_array}, \%point;
 	}
 	close FILE;
+	return 1;
+}
+
+sub parseItemStackLimit {
+	my ($file, $r_hash) = @_;
+	my $reader = Utils::TextReader->new($file);
+	
+	while (!$reader->eof()) {
+		my $line = $reader->readLine();
+		$line =~ s/\x{FEFF}//g;
+		$line =~ s/[\r\n]//g;
+		$line =~ s/#.*$//g;
+		$line =~ s/^\s+//g;
+		
+		next unless length $line;
+		
+		my ($ID, $stack, $mask) = split /\s+/, $line;
+		
+		next unless $mask;
+		
+		for (my $i = 1; $i < 16; $i = $i << 1) {
+			next unless $mask & $i;
+			$r_hash->{$ID}->{$i} = $stack;
+		}
+	}
+	
 	return 1;
 }
 
