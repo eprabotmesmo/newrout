@@ -827,10 +827,10 @@
 1571#Book_of_Gust_of_Wind#
 1572#Principles_of_Magic#
 1573#Ancient_Magic#
-1574#Brave_Bible#
-1575#Valorous_Bible#
+1574#Brave_Strategy_Book#
+1575#Valorous_Strategy_Book#
 1576#Glorious_Tablet#
-1577#Glorious_Book_of_the_Apocalypse#
+1577#Glorious_Apocalypse#
 1581#Diary_Of_Great_Sage#
 1583#Eden_Group_Dictionary_I#
 1584#Chilly_Spell_Book#
@@ -1056,7 +1056,7 @@
 1924#Brave_Guitar#
 1925#Cello#
 1926#Harp_of_Nepenthes#
-1927#Glorious_Base_Guitar#
+1927#Glorious_Guitar#
 1930#Green_Whistle#
 1931#Eden_Group_Guitar_I#
 1932#WoE_TE_Guitar#
@@ -1097,7 +1097,7 @@
 1978#Brave_Lariat#
 1979#Stem_of_Nepenthes#
 1980#Whip_of_Balance#
-1981#Glorious_Lariat_Whip#
+1981#Glorious_Lariat#
 1984#Stem_Whip#
 1985#Rosevine#
 1986#Eden_Group_Whip_I#
@@ -1111,7 +1111,7 @@
 1996#Vicious_Mind_Wire#
 2000#Staff_of_Destruction#
 2001#Divine_Cross#
-2002#Glorious_Staff_of_Destruction#
+2002#Glorious_Destruction_Staff#
 2004#Kronos#
 2005#Dea_Staff#
 2006#Sunshine_Staff#
@@ -5096,6 +5096,8 @@
 10039#placeholder#
 10040#Red_Bell_Necklace#
 10042#Dark_Mane#
+10516#Overseas_Care_Package_XXVIII#
+10517#2019_March_Costume_Box#
 11000#History_book_of_Prontera#
 11001#Adventure_Story_Vol.1#
 11002#Chef_King_Orleans_Vol.1#
@@ -5944,8 +5946,8 @@
 13033#Assassin_Dagger#
 13034#Desert_Twilight#
 13035#Sandstorm#
-13036#Brave_Assassin's_Damascus#
-13037#Valorous_Assassin's_Damascus#
+13036#Brave_Damascus#
+13037#Valorous_Damascus#
 13038#Dagger_of_Hunter#
 13039#Ivory_Knife#
 13040#Novice_Cutter#
@@ -5993,7 +5995,7 @@
 13105#Garrison#
 13106#Gold_Lux#
 13107#Wasteland's_Outlaw#
-13108#Soldier_Revolver#
+13108#Brave_Revolver#
 13110#Glorious_Pistol#
 13112#Eden_Revolver_I#
 13113#Eden_Revolver_II#
@@ -6030,12 +6032,12 @@
 13168#Thunder_P#
 13169#Thunder_P#
 13170#Lever_Action_Rifle#
-13171#Soldier_Rifle#
-13172#Soldier_GatlingGun#
-13173#Soldier_Shotgun#
-13174#Soldier_Grenade_Launcher#
+13171#Valorous_Rifle#
+13172#Brave_Gatling_Gun#
+13173#Valorous_Shotgun#
+13174#Valorous_Grenade_Launcher#
 13176#Glorious_Rifle#
-13177#Glorious_Gatling_gun#
+13177#Glorious_Gatling_Gun#
 13178#Glorious_Shotgun#
 13179#Glorious_Grenade_Launcher#
 13180#Novice_Rifle#
@@ -7045,6 +7047,7 @@
 15283#Mighty_Black_Threaded_Armor#
 15352#Nature_Dress#
 15384#Ritual_Robe#
+15417#Armor_of_Purple_Thread#
 16000#Erde#
 16001#Red_Square_Bag#
 16003#Carga_Mace#
@@ -7264,6 +7267,7 @@
 16588#Thoughtful_Hat_Box#
 16589#Thoughtful_Hat_Box#
 16590#Thoughtful_Hat_Box#
+16591#Overseas_Care_Package_Remix_XIII_Mini#
 16601#Blue_Arara_Hat_Box#
 16615#Charming_Ribbon_Box#
 16616#Charming_Ribbon_Box#
@@ -8130,7 +8134,7 @@
 19033#Classic_Cello_2_Week_Rental_Box#
 19034#Classic_Dex_Survival_Rod_2_Week_Rental_Box#
 19035#(null)#
-19036#(null)#
+19036#Brabery_Hat#
 19037#(null)#
 19038#12th_Anniversary_Crown#
 19039#12th_Anniversary_Elven_Ears#
@@ -8235,6 +8239,7 @@
 19414#Classic_Evolved_Pipe_Box#
 19426#King_Of_Spirit_Circlet#
 19453#Jejecap_JP#
+19460#Black_Veil#
 19500#(null)#
 19501#(null)#
 19502#Costume_Goggles#
@@ -8820,6 +8825,7 @@
 20534#Costume_Big_White_Cat#
 20535#Costume_Digital_Space#
 20537#Costume_Falling_Red_Foliage#
+20538#Costume_Magic_Circle_Rainbow#
 20700#Egir_Manteau#
 20701#Sol_Manteau#
 20702#TE_WoE_Muffler#
@@ -8883,6 +8889,7 @@
 20820#Elemental_Cape#
 20821#Golden_Scarf#
 20822#Mine_Worker's_Backpack#
+20826#Angel_feather#
 20831#Adventurer's_Spirit#
 20834#Drifter's_Cape#
 20836#Skin_of_Lindwyrm#
@@ -8905,6 +8912,7 @@
 20949#Skin_Of_Ladon#
 20952#Mysterious_Muffler#
 20962#Skin_Of_Typhon#
+20969#Rainbow_Muffler#
 21001#Bellum_Claymore#
 21002#Bellum_Katzbalger#
 21003#Muramasa#
@@ -9532,7 +9540,7 @@
 28551#Imperial_Glove#
 28560#Yin_Yang_Talisman#
 28564#Valkyrie_Drop#
-28565#Perverse_Demon_Mask#
+28565#Perverse_Demon_Mask_#
 28573#Emerald_Ring#
 28575#Verus_Core#
 28594#Temporal_Ring#
@@ -9812,6 +9820,7 @@
 31383#Costume_Volume_Low_Twin#
 31384#Costume_Fake_Ears#
 31385#Costume_Gothic_Pumpkin_Handicraft#
+31386#Costume_Survive_Orb#
 31389#Costume_White_Bird_Rose#
 31390#Costume_Let_It_Snow#
 31391#Costume_Floating_Sage_Stone#
@@ -9912,9 +9921,16 @@
 31599#Costume_Medium_Wave#
 31600#Costume_Kishu_Dog#
 31601#Costume_Under_Rimmed_Glasses_(Blue)#
+31608#Costume_Magicstone_of_Grace#
+31609#Costume_Noble_Mask#
+31610#Costume_Yellow_Wizardry_Hat#
+31611#Costume_Dark_Snake_Lord_Stole#
+31612#Costume_Large_Sorcerer_Crown#
+31615#Costume_Geisha_Make_Up#
 32203#Accelerator_Chip#
 32204#Immortal_Dog_Tag#
 32206#Prontera_Militia_Glove#
 32222#Brooch_of_Hero#
 32234#Unrivaled_Ring#
 32242#Old_Detachments_Ring#
+32258#Ring_of_Jupiter#

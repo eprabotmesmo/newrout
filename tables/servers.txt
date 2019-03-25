@@ -27,7 +27,7 @@ addTableFolders bRO
 charBlockSize 144
 pinCode 1
 charDeleteDateType 1
-sendCryptKeys 0x2F0B3D35, 0x4F856F85, 0x49051B85
+sendCryptKeys 0x6ED45629, 0x37230BF8, 0x28EB3D36
 blockingPlayerCancel 1
 rankingSystemType 1
 
@@ -49,7 +49,7 @@ addTableFolders bRO
 charBlockSize 144
 pinCode 1
 charDeleteDateType 1
-sendCryptKeys 0x2F0B3D35, 0x4F856F85, 0x49051B85
+sendCryptKeys 0x6ED45629, 0x37230BF8, 0x28EB3D36
 blockingPlayerCancel 1
 rankingSystemType 1
 
@@ -126,27 +126,27 @@ serverEncoding Western
 patchserver ropatch1.gravityus.com
 patchpath /patch02
 addTableFolders iRO/Renewal;iRO
-charBlockSize 145
+charBlockSize 147
 charDeleteDateType 1
-sendCryptKeys 0x2500014B, 0x7AD179A5, 0x47141B02
+sendCryptKeys 0x708A2CB7, 0x207108B3, 0x7B1C1D7F
 blockingPlayerCancel 1
 rankingSystemType 1
 pauseCharLogin 1
 
 # http://playragnarok.com
 [International - iRO: Sakray]
-ip 128.241.92.162
+ip 128.241.92.195
 port 6800
 master_version 14
 version 18
-serverType iRO
+serverType iRO_Renewal #it use same iRO:RE  ? / made new servertype for it 
 serverEncoding Western
-paddedPackets 0
-paddedPackets_attackID 0x72
-paddedPackets_skillUseID 0xF5
-addTableFolders iRO
-charBlockSize 145
+addTableFolders iRO/Renewal;iRO #it use same iRO:RE  ?
+charDeleteDateType 1
+charBlockSize 147
+sendCryptKeys 0x389B389B, 0x389B389B, 0x389B389B #it use same iRO:RE  ?
 rankingSystemType 1
+blockingPlayerCancel 1
 
 # Pre-renewal
 # http://playragnarok.com
@@ -176,7 +176,7 @@ charBlockSize 145
 pauseCharLogin 1
 patchserver ropatch1.gravityus.com
 patchpath /repatch
-sendCryptKeys 0x41EB0589, 0x52883B0F, 0x29D717A6
+sendCryptKeys 0x46356386, 0x159E1F4A, 0x54FD4DFD
 rankingSystemType 1
 pauseCharLogin 1
 
