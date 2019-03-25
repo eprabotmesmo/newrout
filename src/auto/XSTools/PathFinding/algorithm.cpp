@@ -11,6 +11,11 @@ extern "C" {
 #define DIAGONAL 14
 #define ORTOGONAL 10
 
+#define NORTH 0
+#define WEST 1
+#define EAST 2
+#define SOUTH 3
+
 #ifdef WIN32
 	#include <windows.h>
 #else
@@ -392,12 +397,6 @@ CalcPath_pathStep (CalcPath_session *session)
 	Node* neighborNode;
 	
 	int i;
-	int j;
-	
-	int neighbor_x;
-	int neighbor_y;
-	unsigned long neighbor_adress;
-	unsigned long distanceFromCurrent;
 	
 	unsigned long timeout = (unsigned long) GetTickCount();
 	int loop = 0;
@@ -445,56 +444,22 @@ CalcPath_pathStep (CalcPath_session *session)
 			currentNode->g = currentNode->rhs;
 			openListRemove(session, currentNode);
 			
-			// Get all neighbors
-			for (i = -1; i <= 1; i++)
-			{
-				for (j = -1; j <= 1; j++)
-				{
-					if (i == 0 && j == 0) {
-						continue;
-					}
-					neighbor_x = currentNode->x + i;
-					neighbor_y = currentNode->y + j;
-
-					if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0) {
-						continue;
-					}
-
-					neighbor_adress = (neighbor_y * session->width) + neighbor_x;
-
-					if (session->map_base_weight[neighbor_adress] == 0) {
-						continue;
-					}
-
-					neighborNode = &session->currentMap[neighbor_adress];
+			if (currentNode->expanded == 0) {
+				expandNode(session, currentNode);
+			}
 			
-					if (neighborNode->initialized == 0) {
-						initializeNode(session, neighbor_x, neighbor_y);
-					}
-
-					if (i != 0 && j != 0) {
-						if (session->map_base_weight[(currentNode->y * session->width) + neighborNode->x] == 0 || session->map_base_weight[(neighborNode->y * session->width) + currentNode->x] == 0) {
-							continue;
-						}
-						distanceFromCurrent = DIAGONAL;
-					} else {
-						distanceFromCurrent = ORTOGONAL;
-					}
-
-					if (session->avoidWalls) {
-						distanceFromCurrent += neighborNode->weight;
-					}
-
-					if (neighbor_x == session->endX && neighbor_y == session->endY) {
-						continue;
-					}
-
-					// If current cell weight + distant to next cell is lower than next cell's rhs, current cell becomes the neghbor cell's new sucessor
-					if (neighborNode->rhs > (currentNode->g + distanceFromCurrent)) {
-						neighborNode->sucessor = currentNode->nodeAdress;
-						neighborNode->rhs = currentNode->g + distanceFromCurrent;
-						updateNode(session, neighborNode);
-					}
+			int max = currentNode->neighborsCount;
+			
+			// Get all neighbors
+			for (i = 0; i < max; i++)
+			{
+				neighborNode = &session->currentMap[currentNode->neighbors[i].neighbor_adress];
+				
+				// If current cell weight + distant to next cell is lower than next cell's rhs, current cell becomes the neghbor cell's new sucessor
+				if (neighborNode->rhs > (currentNode->g + currentNode->neighbors[i].distance)) {
+					neighborNode->sucessor = currentNode->nodeAdress;
+					neighborNode->rhs = currentNode->g + currentNode->neighbors[i].distance;
+					updateNode(session, neighborNode);
 				}
 			}
 			
@@ -504,41 +469,18 @@ CalcPath_pathStep (CalcPath_session *session)
 			currentNode->g = 10000000;
 			updateNode(session, currentNode);
 			
-			// Get all neighbors
-			for (i = -1; i <= 1; i++)
-			{
-				for (j = -1; j <= 1; j++)
-				{
-					if (i == 0 && j == 0) {
-						continue;
-					}
-					neighbor_x = currentNode->x + i;
-					neighbor_y = currentNode->y + j;
-
-					if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0) {
-						continue;
-					}
-
-					neighbor_adress = (neighbor_y * session->width) + neighbor_x;
-
-					if (session->map_base_weight[neighbor_adress] == 0) {
-						continue;
-					}
-
-					neighborNode = &session->currentMap[neighbor_adress];
+			if (currentNode->expanded == 0) {
+				expandNode(session, currentNode);
+			}
 			
-					if (neighborNode->initialized == 0) {
-						initializeNode(session, neighbor_x, neighbor_y);
-					}
-					
-					if (neighbor_x == session->endX && neighbor_y == session->endY) {
-						continue;
-					}
-					
-					// Check if neighbor's sucessor is current Node, if so get a new sucessor for the neighbot node
-					if (neighborNode->sucessor == currentNode->nodeAdress) {
-						get_new_neighbor_sucessor(session, neighborNode);
-					}
+			// Get all neighbors
+			for (i = 0; i < currentNode->neighborsCount; i++)
+			{
+				neighborNode = &session->currentMap[currentNode->neighbors[i].neighbor_adress];
+				
+				// Check if neighbor's sucessor is current Node, if so get a new sucessor for the neighbot node
+				if (neighborNode->sucessor == currentNode->nodeAdress) {
+					get_new_neighbor_sucessor(session, neighborNode);
 				}
 			}
 		}
@@ -554,66 +496,329 @@ get_new_neighbor_sucessor (CalcPath_session *session, Node *currentNode)
 	Node* neighborNode;
 	
 	int i;
-	int j;
 	
+	if (currentNode->expanded == 0) {
+		expandNode(session, currentNode);
+	}
+	
+	// Get all neighbors
+	for (i = 0; i < currentNode->neighborsCount; i++)
+	{
+		neighborNode = &session->currentMap[currentNode->neighbors[i].neighbor_adress];
+		
+		// If current cell weight + distant to next cell is lower than next cell's rhs, current cell becomes the neghbor cell's new sucessor
+		if (currentNode->rhs > neighborNode->g + currentNode->neighbors[i].distance) {
+			currentNode->rhs = neighborNode->g + currentNode->neighbors[i].distance;
+			currentNode->sucessor = currentNode->neighbors[i].neighbor_adress;
+		}
+	}
+	
+	updateNode(session, currentNode);
+}
+
+void
+expandNode (CalcPath_session *session, Node *currentNode)
+{
+	currentNode->expanded = 1;
+
 	int neighbor_x;
 	int neighbor_y;
 	unsigned long neighbor_adress;
-	unsigned long distanceFromCurrent;
 	
+	Node* neighborNode;
 	
-	// Get all neighbors
-	for (i = -1; i <= 1; i++)
-	{
-		for (j = -1; j <= 1; j++) {
-			if (i == 0 && j == 0) {
-				continue;
-			}
-			neighbor_x = currentNode->x + i;
-			neighbor_y = currentNode->y + j;
-				
-			if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0) {
-				continue;
-			}
+	bool valid[4];
 	
-			neighbor_adress = (neighbor_y * session->width) + neighbor_x;
-
-			if (session->map_base_weight[neighbor_adress] == 0) {
-				continue;
-			}
-
+	int count = 0;
+	
+	int x = currentNode->x;
+	int y = currentNode->y;
+	
+	if (session->avoidWalls) {
+		
+		// North
+		neighbor_x = x;
+		neighbor_y = y+1;
+		neighbor_adress = ((neighbor_y * session->width) + neighbor_x);
+		
+		if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY)) {
+			valid[NORTH] = 0;
+		} else {
+			valid[NORTH] = 1;
 			neighborNode = &session->currentMap[neighbor_adress];
 			
 			if (neighborNode->initialized == 0) {
 				initializeNode(session, neighbor_x, neighbor_y);
 			}
+			currentNode->neighbors[count].distance = ORTOGONAL + neighborNode->weight;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// West
+		neighbor_x = x-1;
+		neighbor_y = y;
+		neighbor_adress = ((neighbor_y * session->width) + neighbor_x);
+		
+		if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY)) {
+			valid[WEST] = 0;
+		} else {
+			valid[WEST] = 1;
+			neighborNode = &session->currentMap[neighbor_adress];
 			
-			if (i != 0 && j != 0) {
-				if (session->map_base_weight[(currentNode->y * session->width) + neighborNode->x] == 0 || session->map_base_weight[(neighborNode->y * session->width) + currentNode->x] == 0) {
-					continue;
-				}
-				distanceFromCurrent = DIAGONAL;
-			} else {
-				distanceFromCurrent = ORTOGONAL;
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
 			}
+			currentNode->neighbors[count].distance = ORTOGONAL + neighborNode->weight;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// East
+		neighbor_x = x+1;
+		neighbor_y = y;
+		neighbor_adress = ((neighbor_y * session->width) + neighbor_x);
+		
+		if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY)) {
+			valid[EAST] = 0;
+		} else {
+			valid[EAST] = 1;
+			neighborNode = &session->currentMap[neighbor_adress];
 			
-			if (session->avoidWalls) {
-				distanceFromCurrent += currentNode->weight;
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
 			}
+			currentNode->neighbors[count].distance = ORTOGONAL + neighborNode->weight;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// South
+		neighbor_x = x;
+		neighbor_y = y-1;
+		neighbor_adress = ((neighbor_y * session->width) + neighbor_x);
+		
+		if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY)) {
+			valid[SOUTH] = 0;
+		} else {
+			valid[SOUTH] = 1;
+			neighborNode = &session->currentMap[neighbor_adress];
 			
-			if (neighbor_x == session->endX && neighbor_y == session->endY) {
-				continue;
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
 			}
+			currentNode->neighbors[count].distance = ORTOGONAL + neighborNode->weight;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// Northwest
+		neighbor_x = x-1;
+		neighbor_y = y+1;
+		neighbor_adress = ((neighbor_y * session->width) + neighbor_x);
+		
+		if (!(valid[NORTH] == 0 || valid[WEST] == 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY))) {
+			neighborNode = &session->currentMap[neighbor_adress];
 			
-			// If current cell weight + distant to next cell is lower than next cell's rhs, current cell becomes the neghbor cell's new sucessor
-			if (currentNode->rhs > neighborNode->g + distanceFromCurrent) {
-				currentNode->rhs = neighborNode->g + distanceFromCurrent;
-				currentNode->sucessor = neighbor_adress;
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
 			}
+			currentNode->neighbors[count].distance = DIAGONAL + neighborNode->weight;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// Northeast
+		neighbor_x = x+1;
+		neighbor_y = y+1;
+		neighbor_adress = ((neighbor_y * session->width) + neighbor_x);
+		
+		if (!(valid[NORTH] == 0 || valid[EAST] == 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY))) {
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = DIAGONAL + neighborNode->weight;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// Southwest
+		neighbor_x = x-1;
+		neighbor_y = y-1;
+		neighbor_adress = ((neighbor_y * session->width) + neighbor_x);
+		
+		if (!(valid[WEST] == 0 || valid[SOUTH] == 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY))) {
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = DIAGONAL + neighborNode->weight;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// Southeast
+		neighbor_x = x+1;
+		neighbor_y = y-1;
+		neighbor_adress = ((neighbor_y * session->width) + neighbor_x);
+		
+		if (!(valid[EAST] == 0 || valid[SOUTH] == 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY))) {
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = DIAGONAL + neighborNode->weight;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+	} else {
+		
+		// North
+		neighbor_x = currentNode->x;
+		neighbor_y = currentNode->y+1;
+		neighbor_adress = ((neighbor_y * session->width) + neighbor_x);
+		
+		if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY)) {
+			valid[NORTH] = 0;
+		} else {
+			valid[NORTH] = 1;
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = ORTOGONAL;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// West
+		neighbor_x -= 1;
+		neighbor_y -= 1;
+		neighbor_adress -= 1 + session->width;
+		
+		if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY)) {
+			valid[WEST] = 0;
+		} else {
+			valid[WEST] = 1;
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = ORTOGONAL;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// East
+		neighbor_x += 2;
+		//neighbor_y += 0;
+		neighbor_adress += 2;
+		
+		if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY)) {
+			valid[EAST] = 0;
+		} else {
+			valid[EAST] = 1;
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = ORTOGONAL;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// South
+		neighbor_x -= 1;
+		neighbor_y -= 1;
+		neighbor_adress -= 1 + session->width;
+		
+		if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY)) {
+			valid[SOUTH] = 0;
+		} else {
+			valid[SOUTH] = 1;
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = ORTOGONAL;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// Northwest
+		neighbor_x -= 1;
+		neighbor_y += 2;
+		neighbor_adress += 2 * session->width - 1;
+		
+		if (!(valid[NORTH] == 0 || valid[WEST] == 0 || neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY))) {
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = DIAGONAL;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// Northeast
+		neighbor_x += 2;
+		//neighbor_y += 0;
+		neighbor_adress += 2;
+		
+		if (!(valid[NORTH] == 0 || valid[EAST] == 0 || neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY))) {
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = DIAGONAL;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// Southwest
+		neighbor_x -= 2;
+		neighbor_y -= 2;
+		neighbor_adress -= 2 + 2 * session->width;
+		
+		if (!(valid[WEST] == 0 || valid[SOUTH] == 0 || neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY))) {
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+				initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = DIAGONAL;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
+		}
+		
+		// Southeast
+		neighbor_x += 2;
+		//neighbor_y += 0;
+		neighbor_adress += 2;
+		
+		if (!(valid[EAST] == 0 || valid[SOUTH] == 0 || neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0 || session->map_base_weight[neighbor_adress] == 0 || (neighbor_x == session->endX && neighbor_y == session->endY))) {
+			neighborNode = &session->currentMap[neighbor_adress];
+			
+			if (neighborNode->initialized == 0) {
+			initializeNode(session, neighbor_x, neighbor_y);
+			}
+			currentNode->neighbors[count].distance = DIAGONAL;
+			currentNode->neighbors[count].neighbor_adress = neighbor_adress;
+			count++;
 		}
 	}
 	
-	updateNode(session, currentNode);
+	currentNode->neighborsCount = count;
 }
 
 // Create a new pathfinding session, or reset an existing session.
@@ -651,6 +856,7 @@ initializeNode (CalcPath_session *session, int x, int y)
 	currentNode->g = 10000000;
 	currentNode->rhs = 10000000;
 	currentNode->weight = session->map_base_weight[current];
+	currentNode->expanded = 0;
 	currentNode->initialized = 1;
 }
 
@@ -689,113 +895,42 @@ updateChangedMap (CalcPath_session *session, int x, int y, long delta_weight)
 	Node* neighborNode;
 	
 	int i;
-	int j;
-	
-	int neighbor_x;
-	int neighbor_y;
-	unsigned long neighbor_adress;
-	unsigned long distanceFromCurrent;
 	
 	// If cell got ligher it may have new sucessors
 	if (old_weight > new_weight) {
+		
+		if (currentNode->expanded == 0) {
+			expandNode(session, currentNode);
+		}
+		
 		// Get all neighbors
-		for (i = -1; i <= 1; i++)
+		for (i = 0; i < currentNode->neighborsCount; i++)
 		{
-			for (j = -1; j <= 1; j++)
-			{
-				if (i == 0 && j == 0) {
-					continue;
-				}
-				neighbor_x = x + i;
-				neighbor_y = y + j;
-					
-				if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0) {
-					continue;
-				}
-	
-				neighbor_adress = (neighbor_y * session->width) + neighbor_x;
-
-				if (session->map_base_weight[neighbor_adress] == 0) {
-					continue;
-				}
-
-				neighborNode = &session->currentMap[neighbor_adress];
+			neighborNode = &session->currentMap[currentNode->neighbors[i].neighbor_adress];
 			
-				if (neighborNode->initialized == 0) {
-					initializeNode(session, neighbor_x, neighbor_y);
-				}
-				
-				if (i != 0 && j != 0) {
-					if (session->map_base_weight[(currentNode->y * session->width) + neighborNode->x] == 0 || session->map_base_weight[(neighborNode->y * session->width) + currentNode->x] == 0) {
-						continue;
-					}
-					distanceFromCurrent = DIAGONAL;
-				} else {
-					distanceFromCurrent = ORTOGONAL;
-				}
-				
-				if (session->avoidWalls) {
-					distanceFromCurrent += neighborNode->weight;
-				}
-				
-				if (neighbor_x == session->endX && neighbor_y == session->endY) {
-					continue;
-				}
-				
-				// If current cell weight + distant to next cell is lower than next cell's rhs, current cell becomes the neghbor cell's new sucessor
-				if (neighborNode->rhs > (currentNode->g + distanceFromCurrent)) {
-					neighborNode->sucessor = currentNode->nodeAdress;
-					neighborNode->rhs = currentNode->g + distanceFromCurrent;
-					updateNode(session, neighborNode);
-					
-					
-				}
+			// If current cell weight + distant to next cell is lower than next cell's rhs, current cell becomes the neghbor cell's new sucessor
+			if (neighborNode->rhs > (currentNode->g + currentNode->neighbors[i].distance)) {
+				neighborNode->sucessor = currentNode->nodeAdress;
+				neighborNode->rhs = currentNode->g + currentNode->neighbors[i].distance;
+				updateNode(session, neighborNode);
 			}
 		}
 	
 	// If cell got heavier it may have lost some sucessors
 	} else {
+		
+		if (currentNode->expanded == 0) {
+			expandNode(session, currentNode);
+		}
+		
 		// Get all neighbors
-		for (i = -1; i <= 1; i++)
+		for (i = 0; i < currentNode->neighborsCount; i++)
 		{
-			for (j = -1; j <= 1; j++)
-			{
-				if (i == 0 && j == 0) {
-					continue;
-				}
-				neighbor_x = x + i;
-				neighbor_y = y + j;
-
-				if (neighbor_x >= session->width || neighbor_y >= session->height || neighbor_x < 0 || neighbor_y < 0) {
-					continue;
-				}
-
-				neighbor_adress = (neighbor_y * session->width) + neighbor_x;
-
-				if (session->map_base_weight[neighbor_adress] == 0) {
-					continue;
-				}
-
-				neighborNode = &session->currentMap[neighbor_adress];
+			neighborNode = &session->currentMap[currentNode->neighbors[i].neighbor_adress];
 			
-				if (neighborNode->initialized == 0) {
-					initializeNode(session, neighbor_x, neighbor_y);
-				}
-				
-				if (i != 0 && j != 0) {
-					if (session->map_base_weight[(currentNode->y * session->width) + neighborNode->x] == 0 || session->map_base_weight[(neighborNode->y * session->width) + currentNode->x] == 0) {
-						continue;
-					}
-				}
-					
-				if (neighbor_x == session->endX && neighbor_y == session->endY) {
-					continue;
-				}
-				
-				// Check if neighbor's sucessor is current Node, if so get a new sucessor for the neighbor node
-				if (neighborNode->sucessor == currentNode->nodeAdress) {
-					get_new_neighbor_sucessor(session, neighborNode);
-				}
+			// Check if neighbor's sucessor is current Node, if so get a new sucessor for the neighbor node
+			if (neighborNode->sucessor == currentNode->nodeAdress) {
+				get_new_neighbor_sucessor(session, neighborNode);
 			}
 		}
 	}

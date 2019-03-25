@@ -1,0 +1,31 @@
+automacro gotostart {
+	run-once 1
+	exclusive 1
+	priority 0
+	InMap prontera
+	call {
+		do c \@warp prontera 155 60
+	}
+}
+
+automacro move1 {
+	run-once 1
+	exclusive 1
+	priority 1
+	InMap prontera
+	call {
+		do move prontera 155 100
+		release move2
+	}
+}
+
+automacro move2 {
+	run-once 1
+	exclusive 1
+	priority 2
+	InMap prontera
+	call {
+		do move prontera 155 60
+		release move1
+	}
+}

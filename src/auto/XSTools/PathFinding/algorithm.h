@@ -6,6 +6,15 @@ extern "C" {
 #endif /* __cplusplus */
 
 typedef struct {
+	unsigned long neighbor_adress;
+	unsigned long distance;
+} Neighbor;
+
+typedef struct {
+	bool expanded;
+	Neighbor neighbors[8];
+	unsigned short neighborsCount;
+	
 	bool initialized;
 	
 	int x;
@@ -76,6 +85,8 @@ void get_new_neighbor_sucessor (CalcPath_session *session, Node *currentNode);
 void CalcPath_init (CalcPath_session *session);
 
 void initializeNode (CalcPath_session *session, int x, int y);
+
+void expandNode (CalcPath_session *session, Node *currentNode);
 
 int updateChangedMap (CalcPath_session *session, int x, int y, long delta_weight);
 
